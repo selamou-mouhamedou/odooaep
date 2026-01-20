@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ================================================================
+         SAMPLE EXECUTION SECTORS
+         Pre-defined geographic/administrative sectors (customize per country)
+    ================================================================= -->
+
+    <!-- Parent Sectors (Regions) -->
+    <record id="sector_north" model="execution.sector">
+        <field name="name">North Region</field>
+        <field name="code">NORTH</field>
+        <field name="description">Northern administrative region</field>
+    </record>
+
+    <record id="sector_south" model="execution.sector">
+        <field name="name">South Region</field>
+        <field name="code">SOUTH</field>
+        <field name="description">Southern administrative region</field>
+    </record>
+
+    <record id="sector_east" model="execution.sector">
+        <field name="name">East Region</field>
+        <field name="code">EAST</field>
+        <field name="description">Eastern administrative region</field>
+    </record>
+
+    <record id="sector_west" model="execution.sector">
+        <field name="name">West Region</field>
+        <field name="code">WEST</field>
+        <field name="description">Western administrative region</field>
+    </record>
+
+    <record id="sector_central" model="execution.sector">
+        <field name="name">Central Region</field>
+        <field name="code">CENTRAL</field>
+        <field name="description">Central administrative region</field>
+    </record>
+
+    <!-- Child Sectors (Districts) - Examples for Central Region -->
+    <record id="sector_central_district_1" model="execution.sector">
+        <field name="name">District 1</field>
+        <field name="code">CENT01</field>
+        <field name="parent_id" ref="sector_central"/>
+        <field name="description">Central Region - District 1</field>
+    </record>
+
+    <record id="sector_central_district_2" model="execution.sector">
+        <field name="name">District 2</field>
+        <field name="code">CENT02</field>
+        <field name="parent_id" ref="sector_central"/>
+        <field name="description">Central Region - District 2</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ================================================================
+         EXECUTION PROJECT TYPES
+         Pre-defined infrastructure project categories
+    ================================================================= -->
+
+    <record id="project_type_water" model="execution.project.type">
+        <field name="name">Water Infrastructure</field>
+        <field name="code">WAT</field>
+        <field name="description">Water supply, sanitation, irrigation, and drainage projects</field>
+        <field name="sequence">10</field>
+        <field name="icon">fa-tint</field>
+        <field name="color">4</field>
+    </record>
+
+    <record id="project_type_energy" model="execution.project.type">
+        <field name="name">Energy Infrastructure</field>
+        <field name="code">ENE</field>
+        <field name="description">Power generation, transmission, distribution, and renewable energy projects</field>
+        <field name="sequence">20</field>
+        <field name="icon">fa-bolt</field>
+        <field name="color">3</field>
+    </record>
+
+    <record id="project_type_public_works" model="execution.project.type">
+        <field name="name">Public Works</field>
+        <field name="code">PUB</field>
+        <field name="description">Government buildings, public facilities, and municipal infrastructure</field>
+        <field name="sequence">30</field>
+        <field name="icon">fa-building</field>
+        <field name="color">5</field>
+    </record>
+
+    <record id="project_type_transport" model="execution.project.type">
+        <field name="name">Transportation</field>
+        <field name="code">TRA</field>
+        <field name="description">Roads, bridges, railways, ports, and airports</field>
+        <field name="sequence">40</field>
+        <field name="icon">fa-road</field>
+        <field name="color">6</field>
+    </record>
+
+    <record id="project_type_telecom" model="execution.project.type">
+        <field name="name">Telecommunications</field>
+        <field name="code">TEL</field>
+        <field name="description">Telecommunications networks, fiber optic, and connectivity projects</field>
+        <field name="sequence">50</field>
+        <field name="icon">fa-wifi</field>
+        <field name="color">7</field>
+    </record>
+
+    <record id="project_type_education" model="execution.project.type">
+        <field name="name">Education Infrastructure</field>
+        <field name="code">EDU</field>
+        <field name="description">Schools, universities, training centers, and educational facilities</field>
+        <field name="sequence">60</field>
+        <field name="icon">fa-graduation-cap</field>
+        <field name="color">8</field>
+    </record>
+
+    <record id="project_type_health" model="execution.project.type">
+        <field name="name">Health Infrastructure</field>
+        <field name="code">HEA</field>
+        <field name="description">Hospitals, clinics, health centers, and medical facilities</field>
+        <field name="sequence">70</field>
+        <field name="icon">fa-hospital-o</field>
+        <field name="color">9</field>
+    </record>
+
+    <record id="project_type_environment" model="execution.project.type">
+        <field name="name">Environmental</field>
+        <field name="code">ENV</field>
+        <field name="description">Environmental protection, waste management, and green projects</field>
+        <field name="sequence">80</field>
+        <field name="icon">fa-leaf</field>
+        <field name="color">10</field>
+    </record>
+
+    <record id="project_type_housing" model="execution.project.type">
+        <field name="name">Housing</field>
+        <field name="code">HOU</field>
+        <field name="description">Residential housing, social housing, and urban development</field>
+        <field name="sequence">90</field>
+        <field name="icon">fa-home</field>
+        <field name="color">11</field>
+    </record>
+
+    <record id="project_type_other" model="execution.project.type">
+        <field name="name">Other Infrastructure</field>
+        <field name="code">OTH</field>
+        <field name="description">Other infrastructure projects not classified elsewhere</field>
+        <field name="sequence">100</field>
+        <field name="icon">fa-cubes</field>
+        <field name="color">1</field>
+    </record>
+
+</odoo>

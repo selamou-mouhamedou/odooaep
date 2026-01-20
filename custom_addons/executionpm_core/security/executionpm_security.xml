@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ================================================================
+         MODULE CATEGORY
+    ================================================================= -->
+    <record id="module_category_executionpm" model="ir.module.category">
+        <field name="name">Execution PM</field>
+        <field name="description">Execution Project Management for Infrastructure</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <!-- ================================================================
+         SECURITY GROUPS
+    ================================================================= -->
+    
+    <!-- User Group: Basic access to projects -->
+    <record id="group_executionpm_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('project.group_project_user'))]"/>
+        <field name="comment">Users can view and edit their own projects and declarations.</field>
+    </record>
+
+    <!-- Validator Group: Can validate progress and declarations -->
+    <record id="group_executionpm_validator" model="res.groups">
+        <field name="name">Validator</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_user'))]"/>
+        <field name="comment">Validators can approve progress declarations and validate work.</field>
+    </record>
+
+    <!-- Manager Group: Full project management access -->
+    <record id="group_executionpm_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_validator'))]"/>
+        <field name="comment">Managers have full access to projects and can change states.</field>
+    </record>
+
+    <!-- Administrator Group: Full system access -->
+    <record id="group_executionpm_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_manager'))]"/>
+        <field name="comment">Administrators can manage all settings and configurations.</field>
+    </record>
+
+    <!-- ================================================================
+         RECORD RULES - Project Types (Configuration)
+    ================================================================= -->
+    
+    <!-- All users can read project types -->
+    <record id="rule_project_type_read_all" model="ir.rule">
+        <field name="name">Execution Project Type: Read All</field>
+        <field name="model_id" ref="model_execution_project_type"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+    </record>
+
+    <!-- Admins can manage project types -->
+    <record id="rule_project_type_admin" model="ir.rule">
+        <field name="name">Execution Project Type: Admin Full Access</field>
+        <field name="model_id" ref="model_execution_project_type"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ================================================================
+         RECORD RULES - Sectors (Configuration)
+    ================================================================= -->
+    
+    <!-- All users can read sectors -->
+    <record id="rule_sector_read_all" model="ir.rule">
+        <field name="name">Execution Sector: Read All</field>
+        <field name="model_id" ref="model_execution_sector"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+    </record>
+
+    <!-- Admins can manage sectors -->
+    <record id="rule_sector_admin" model="ir.rule">
+        <field name="name">Execution Sector: Admin Full Access</field>
+        <field name="model_id" ref="model_execution_sector"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ================================================================
+         RECORD RULES - Funding Sources (Configuration)
+    ================================================================= -->
+    
+    <!-- All users can read funding sources -->
+    <record id="rule_funding_source_read_all" model="ir.rule">
+        <field name="name">Execution Funding Source: Read All</field>
+        <field name="model_id" ref="model_execution_funding_source"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+    </record>
+
+    <!-- Admins can manage funding sources -->
+    <record id="rule_funding_source_admin" model="ir.rule">
+        <field name="name">Execution Funding Source: Admin Full Access</field>
+        <field name="model_id" ref="model_execution_funding_source"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ================================================================
+         RECORD RULES - Projects
+    ================================================================= -->
+    
+    <!-- Users can see projects they are assigned to or created -->
+    <record id="rule_project_user" model="ir.rule">
+        <field name="name">Execution Project: User Own Projects</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[
+            '|', '|', '|',
+            ('user_id', '=', user.id),
+            ('create_uid', '=', user.id),
+            ('message_partner_ids', 'in', [user.partner_id.id]),
+            ('privacy_visibility', '=', 'portal')
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+    </record>
+
+    <!-- Managers can see all projects -->
+    <record id="rule_project_manager" model="ir.rule">
+        <field name="name">Execution Project: Manager Full Access</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_manager'))]"/>
+    </record>
+
+
+</odoo>

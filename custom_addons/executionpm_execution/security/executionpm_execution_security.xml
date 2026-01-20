@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Users can only modify their own draft/rejected declarations -->
+    <record id="rule_execution_progress_user_own" model="ir.rule">
+        <field name="name">User: Own Declarations Only for Modification</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_user'))]"/>
+        <field name="domain_force">['|', ('create_uid', '=', user.id), ('state', 'in', ['validated'])]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+    
+    <!-- Validators can see and modify all declarations -->
+    <record id="rule_execution_progress_validator" model="ir.rule">
+        <field name="name">Validator: All Declarations</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_validator'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+
+</odoo>

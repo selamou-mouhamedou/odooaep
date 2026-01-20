@@ -1,0 +1,73 @@
+RPC_ERROR
+
+Odoo Server Error
+
+Occured on localhost:8069 on model ir.module.module on 2026-01-20 15:47:18 GMT
+
+Traceback (most recent call last):
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/http.py", line 2166, in _transactioning
+    return service_model.retrying(func, env=self.env)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/service/model.py", line 156, in retrying
+    result = func()
+             ^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/http.py", line 2133, in _serve_ir_http
+    response = self.dispatcher.dispatch(rule.endpoint, args)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/http.py", line 2381, in dispatch
+    result = self.request.registry['ir.http']._dispatch(endpoint)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/addons/base/models/ir_http.py", line 333, in _dispatch
+    result = endpoint(**request.params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/http.py", line 754, in route_wrapper
+    result = endpoint(self, *args, **params_ok)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/addons/web/controllers/dataset.py", line 42, in call_button
+    action = call_kw(request.env[model], method, args, kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/api.py", line 535, in call_kw
+    result = getattr(recs, name)(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/decorator.py", line 232, in fun
+    return caller(func, *(extras + args), **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/addons/base/models/ir_module.py", line 76, in check_and_log
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/addons/base/models/ir_module.py", line 492, in button_immediate_install
+    return self._button_immediate_function(self.env.registry[self._name].button_install)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/addons/base/models/ir_module.py", line 616, in _button_immediate_function
+    registry = modules.registry.Registry.new(self._cr.dbname, update_module=True)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/decorator.py", line 232, in fun
+    return caller(func, *(extras + args), **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/tools/func.py", line 97, in locked
+    return func(inst, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/modules/registry.py", line 129, in new
+    odoo.modules.load_modules(registry, force_demo, status, update_module)
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/modules/loading.py", line 489, in load_modules
+    processed_modules += load_marked_modules(env, graph,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/modules/loading.py", line 365, in load_marked_modules
+    loaded, processed = load_module_graph(
+                        ^^^^^^^^^^^^^^^^^^
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/modules/loading.py", line 228, in load_module_graph
+    load_data(env, idref, mode, kind='data', package=package)
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/modules/loading.py", line 72, in load_data
+    tools.convert_file(env, package.name, filename, idref, mode, noupdate, kind)
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/tools/convert.py", line 662, in convert_file
+    convert_xml_import(env, module, fp, idref, mode, noupdate)
+  File "/Users/selamou/Desktop/odoo18-project/odoo/odoo/tools/convert.py", line 716, in convert_xml_import
+    relaxng.assert_(doc)
+  File "src/lxml/etree.pyx", line 3682, in lxml.etree._Validator.assert_
+AssertionError: Element odoo has extra content: record, line 4
+
+The above server error caused the following client error:
+RPC_ERROR: Odoo Server Error
+    RPC_ERROR
+        at makeErrorFromResponse (http://localhost:8069/web/assets/49df507/web.assets_web.min.js:3165:165)
+        at XMLHttpRequest.<anonymous> (http://localhost:8069/web/assets/49df507/web.assets_web.min.js:3170:13)

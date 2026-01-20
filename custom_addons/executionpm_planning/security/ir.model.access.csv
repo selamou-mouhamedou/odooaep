@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_execution_planning_user,execution.planning.user,model_execution_planning,executionpm_core.group_executionpm_user,1,1,1,1
+access_execution_planning_lot_user,execution.planning.lot.user,model_execution_planning_lot,executionpm_core.group_executionpm_user,1,1,1,1
+access_execution_planning_task_user,execution.planning.task.user,model_execution_planning_task,executionpm_core.group_executionpm_user,1,1,1,1

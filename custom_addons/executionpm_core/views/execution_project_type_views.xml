@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- ================================================================
+         EXECUTION PROJECT TYPE VIEWS
+    ================================================================= -->
+
+    <!-- ========== TREE VIEW ========== -->
+    <record id="view_execution_project_type_tree" model="ir.ui.view">
+        <field name="name">execution.project.type.tree</field>
+        <field name="model">execution.project.type</field>
+        <field name="arch" type="xml">
+            <list string="Project Types" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="icon"/>
+                <field name="description" optional="hide"/>
+                <field name="project_count"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== FORM VIEW ========== -->
+    <record id="view_execution_project_type_form" model="ir.ui.view">
+        <field name="name">execution.project.type.form</field>
+        <field name="model">execution.project.type</field>
+        <field name="arch" type="xml">
+            <form string="Project Type">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" 
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Water Infrastructure"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g., WAT"/>
+                            <field name="icon" placeholder="e.g., fa-tint"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="color" widget="color_picker"/>
+                            <field name="project_count"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <separator string="Description"/>
+                    <field name="description" placeholder="Describe this project type..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== KANBAN VIEW ========== -->
+    <record id="view_execution_project_type_kanban" model="ir.ui.view">
+        <field name="name">execution.project.type.kanban</field>
+        <field name="model">execution.project.type</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="icon"/>
+                <field name="color"/>
+                <field name="project_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <i t-attf-class="fa #{record.icon.raw_value} me-2"/>
+                                    <span class="o_primary"><field name="name"/></span>
+                                </div>
+                            </div>
+                            <div class="container o_kanban_card_content">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span class="text-muted">Code</span>
+                                        <div><field name="code"/></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="text-muted">Projects</span>
+                                        <div><field name="project_count"/></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========== SEARCH VIEW ========== -->
+    <record id="view_execution_project_type_search" model="ir.ui.view">
+        <field name="name">execution.project.type.search</field>
+        <field name="model">execution.project.type</field>
+        <field name="arch" type="xml">
+            <search string="Search Project Types">
+                <field name="name"/>
+                <field name="code"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== ACTION ========== -->
+    <record id="action_execution_project_type" model="ir.actions.act_window">
+        <field name="name">Project Types</field>
+        <field name="res_model">execution.project.type</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new project type
+            </p>
+            <p>
+                Define categories for your infrastructure projects (Water, Energy, etc.)
+            </p>
+        </field>
+    </record>
+
+
+</odoo>

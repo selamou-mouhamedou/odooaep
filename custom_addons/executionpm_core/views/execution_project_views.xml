@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- ================================================================
+         EXECUTION PROJECT VIEWS
+         Extended views for project.project with execution fields
+    ================================================================= -->
+
+    <!-- ========== SEARCH VIEW ========== -->
+    <record id="view_execution_project_search" model="ir.ui.view">
+        <field name="name">execution.project.search</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_project_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="Execution Projects" 
+                        name="filter_execution_projects" 
+                        domain="[('is_execution_project', '=', True)]"/>
+                <separator/>
+                <filter string="Draft" name="filter_draft" 
+                        domain="[('execution_state', '=', 'draft')]"/>
+                <filter string="Planned" name="filter_planned" 
+                        domain="[('execution_state', '=', 'planned')]"/>
+                <filter string="Running" name="filter_running" 
+                        domain="[('execution_state', '=', 'running')]"/>
+                <filter string="At Risk" name="filter_at_risk" 
+                        domain="[('execution_state', '=', 'at_risk')]"/>
+                <filter string="Suspended" name="filter_suspended" 
+                        domain="[('execution_state', '=', 'suspended')]"/>
+                <filter string="Closed" name="filter_closed" 
+                        domain="[('execution_state', '=', 'closed')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Project Type" name="group_type" 
+                            context="{'group_by': 'execution_project_type_id'}"/>
+                    <filter string="Sector" name="group_sector" 
+                            context="{'group_by': 'execution_sector_id'}"/>
+                    <filter string="Funding Source" name="group_funding" 
+                            context="{'group_by': 'execution_funding_source_id'}"/>
+                    <filter string="Execution State" name="group_state" 
+                            context="{'group_by': 'execution_state'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ========== TREE VIEW ========== -->
+    <record id="view_execution_project_tree" model="ir.ui.view">
+        <field name="name">execution.project.tree</field>
+        <field name="model">project.project</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list string="Execution Projects" 
+                  decoration-info="execution_state == 'draft'"
+                  decoration-primary="execution_state == 'planned'"
+                  decoration-success="execution_state == 'running'"
+                  decoration-warning="execution_state == 'at_risk'"
+                  decoration-muted="execution_state == 'suspended'"
+                  decoration-bf="execution_state == 'closed'">
+                <field name="national_project_code" optional="show"/>
+                <field name="name"/>
+                <field name="execution_project_type_id" optional="show"/>
+                <field name="execution_sector_id" optional="show"/>
+                <field name="execution_state" 
+                       widget="badge"
+                       decoration-info="execution_state == 'draft'"
+                       decoration-primary="execution_state == 'planned'"
+                       decoration-success="execution_state == 'running'"
+                       decoration-danger="execution_state == 'at_risk'"
+                       decoration-warning="execution_state == 'suspended'"
+                       decoration-muted="execution_state == 'closed'"/>
+                <field name="execution_progress" widget="progressbar" optional="show"/>
+                <field name="execution_budget" optional="show" sum="Total Budget"/>
+                <field name="execution_currency_id" column_invisible="1"/>
+                <field name="execution_funding_source_id" optional="hide"/>
+                <field name="execution_planned_start" optional="show"/>
+                <field name="execution_planned_end" optional="show"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="is_execution_project" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== FORM VIEW ========== -->
+    <record id="view_execution_project_form" model="ir.ui.view">
+        <field name="name">execution.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <!-- Add execution toggle after name -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="is_execution_project"/>
+            </xpath>
+
+            <!-- Add state header buttons -->
+            <xpath expr="//sheet" position="before">
+                <header invisible="not is_execution_project">
+                    <button name="action_set_planned" 
+                            string="Plan Project" 
+                            type="object"
+                            class="oe_highlight"
+                            invisible="execution_state != 'draft'"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                    <button name="action_set_running" 
+                            string="Start Execution" 
+                            type="object"
+                            class="oe_highlight"
+                            invisible="execution_state != 'planned'"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                    <button name="action_set_at_risk" 
+                            string="Flag At Risk" 
+                            type="object"
+                            class="btn-warning"
+                            invisible="execution_state not in ('running',)"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                    <button name="action_set_suspended" 
+                            string="Suspend" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="execution_state not in ('running', 'at_risk')"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                    <button name="action_resume_project" 
+                            string="Resume" 
+                            type="object"
+                            class="oe_highlight"
+                            invisible="execution_state not in ('suspended', 'at_risk')"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                    <button name="action_set_closed" 
+                            string="Close Project" 
+                            type="object"
+                            class="btn-success"
+                            invisible="execution_state not in ('running', 'at_risk', 'suspended')"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                    <button name="action_set_draft" 
+                            string="Reset to Draft" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="execution_state != 'planned'"
+                            groups="executionpm_core.group_executionpm_admin"/>
+                    <field name="execution_state" 
+                           widget="statusbar" 
+                           statusbar_visible="draft,planned,running,closed"/>
+                </header>
+            </xpath>
+
+            <!-- Add execution project details in a new notebook page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Execution Details" name="execution_details" 
+                      invisible="not is_execution_project">
+                    <group>
+                        <group string="Identification">
+                            <field name="national_project_code" readonly="1"/>
+                            <field name="execution_project_type_id" 
+                                   options="{'no_create': True}"/>
+                            <field name="execution_sector_id" 
+                                   options="{'no_create': True}"/>
+                            <field name="execution_location"/>
+                        </group>
+                        <group string="Timeline">
+                            <label for="execution_planned_start" string="Planned Period"/>
+                            <div class="o_row">
+                                <field name="execution_planned_start" class="oe_inline"/>
+                                <span class="mx-2">→</span>
+                                <field name="execution_planned_end" class="oe_inline"/>
+                            </div>
+                            <label for="execution_actual_start" string="Actual Period"/>
+                            <div class="o_row">
+                                <field name="execution_actual_start" class="oe_inline"/>
+                                <span class="mx-2">→</span>
+                                <field name="execution_actual_end" class="oe_inline"/>
+                            </div>
+                            <field name="execution_duration_planned"/>
+                            <field name="execution_duration_actual"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Budget &amp; Funding">
+                            <field name="execution_currency_id" groups="base.group_multi_currency"/>
+                            <field name="execution_budget"/>
+                            <field name="execution_funding_source_id" 
+                                   options="{'no_create': True}"/>
+                            <field name="execution_committed_amount"/>
+                            <field name="execution_spent_amount"/>
+                            <field name="execution_budget_remaining"/>
+                            <field name="execution_budget_utilization" widget="progressbar"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="execution_progress" widget="progressbar"/>
+                            <field name="execution_physical_progress" widget="progressbar"/>
+                            <field name="execution_financial_progress" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Stakeholders">
+                            <field name="execution_contracting_authority_id"/>
+                            <field name="execution_contractor_id"/>
+                            <field name="execution_supervisor_id"/>
+                        </group>
+                        <group string="Location Coordinates">
+                            <field name="execution_latitude"/>
+                            <field name="execution_longitude"/>
+                            <field name="execution_country_id"/>
+                        </group>
+                    </group>
+                    <group string="State Change Information" 
+                           invisible="execution_state == 'draft'">
+                        <group>
+                            <field name="execution_state_changed_date"/>
+                            <field name="execution_state_changed_by"/>
+                        </group>
+                        <group>
+                            <field name="execution_state_reason"/>
+                        </group>
+                    </group>
+                    <separator string="Project Objective"/>
+                    <field name="execution_objective" placeholder="Describe the main objective of this project..."/>
+                    <separator string="Project Scope"/>
+                    <field name="execution_scope" placeholder="Define the scope of work..."/>
+                    <separator string="Notes"/>
+                    <field name="execution_notes"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ========== KANBAN VIEW ========== -->
+    <record id="view_execution_project_kanban" model="ir.ui.view">
+        <field name="name">execution.project.kanban</field>
+        <field name="model">project.project</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" 
+                    default_group_by="execution_state"
+                    quick_create="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="national_project_code"/>
+                <field name="execution_project_type_id"/>
+                <field name="execution_state"/>
+                <field name="execution_progress"/>
+                <field name="execution_budget"/>
+                <field name="execution_currency_id"/>
+                <field name="user_id"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_content">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <span class="o_kanban_record_subtitle text-muted">
+                                        <field name="national_project_code"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_record_top_right">
+                                    <field name="execution_state" widget="label_selection" 
+                                           options="{'classes': {'draft': 'info', 'planned': 'primary', 'running': 'success', 'at_risk': 'danger', 'suspended': 'warning', 'closed': 'secondary'}}"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div class="mb-2">
+                                    <field name="execution_project_type_id"/>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Progress:</span>
+                                    <field name="execution_progress" widget="progressbar" 
+                                           options="{'editable': false}"/>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span class="text-muted">Budget:</span>
+                                    <field name="execution_budget" widget="monetary" 
+                                           options="{'currency_field': 'execution_currency_id'}"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <field name="activity_ids" widget="kanban_activity"/>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========== ACTIONS ========== -->
+    <record id="action_execution_project" model="ir.actions.act_window">
+        <field name="name">Execution Projects</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">list,kanban,form,calendar,pivot,graph</field>
+        <field name="domain">[('is_execution_project', '=', True)]</field>
+        <field name="context">{
+            'default_is_execution_project': True,
+            'search_default_filter_execution_projects': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Execution Project
+            </p>
+            <p>
+                Manage infrastructure projects with full lifecycle tracking,
+                progress monitoring, and budget control.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action with specific view -->
+    <record id="action_execution_project_tree" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_execution_project_tree"/>
+        <field name="act_window_id" ref="action_execution_project"/>
+    </record>
+
+    <record id="action_execution_project_kanban" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_execution_project_kanban"/>
+        <field name="act_window_id" ref="action_execution_project"/>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_execution_project_dashboard" model="ir.actions.act_window">
+        <field name="name">Project Dashboard</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_execution_project', '=', True)]</field>
+        <field name="context">{
+            'default_is_execution_project': True,
+            'search_default_filter_running': 1
+        }</field>
+    </record>
+
+
+</odoo>

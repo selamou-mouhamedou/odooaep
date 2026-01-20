@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_validation_root"
+              name="Validation"
+              parent="executionpm_core.menu_executionpm_root"
+              sequence="40"
+              groups="executionpm_core.group_executionpm_validator"/>
+              
+    <menuitem id="menu_validation_audit_trail"
+              name="Audit Trail"
+              parent="menu_validation_root"
+              action="action_execution_validation"
+              sequence="10"/>
+</odoo>

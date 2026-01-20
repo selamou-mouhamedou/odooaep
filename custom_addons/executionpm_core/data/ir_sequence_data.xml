@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ================================================================
+         SEQUENCE FOR NATIONAL PROJECT CODE
+    ================================================================= -->
+
+    <record id="sequence_execution_project_code" model="ir.sequence">
+        <field name="name">Execution Project Code Sequence</field>
+        <field name="code">execution.project.code</field>
+        <field name="prefix"></field>
+        <field name="padding">4</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+</odoo>

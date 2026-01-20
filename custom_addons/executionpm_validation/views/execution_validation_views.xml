@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- Search View -->
+    <record id="view_execution_validation_search" model="ir.ui.view">
+        <field name="name">execution.validation.search</field>
+        <field name="model">execution.validation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="progress_id"/>
+                <field name="task_id"/>
+                <field name="project_id"/>
+                <field name="validator_id"/>
+                <separator/>
+                <filter string="Validated" name="validated" domain="[('decision', '=', 'validated')]"/>
+                <filter string="Rejected" name="rejected" domain="[('decision', '=', 'rejected')]"/>
+                <filter string="Correction Requested" name="correction" domain="[('decision', '=', 'correction_requested')]"/>
+                <separator/>
+                <filter string="Today" name="today" domain="[('validation_datetime', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                <filter string="This Week" name="this_week" domain="[('validation_datetime', '&gt;=', (context_today() - datetime.timedelta(days=7)))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Project" name="group_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="Validator" name="group_validator" context="{'group_by': 'validator_id'}"/>
+                    <filter string="Decision" name="group_decision" context="{'group_by': 'decision'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'validation_datetime:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- List View (Read-Only Audit Trail) -->
+    <record id="view_execution_validation_list" model="ir.ui.view">
+        <field name="name">execution.validation.list</field>
+        <field name="model">execution.validation</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0"
+                  decoration-success="decision == 'validated'"
+                  decoration-danger="decision == 'rejected'"
+                  decoration-warning="decision == 'correction_requested'">
+                <field name="validation_datetime"/>
+                <field name="progress_id"/>
+                <field name="task_id"/>
+                <field name="project_id" optional="show"/>
+                <field name="declared_percentage_snapshot" string="Declared %"/>
+                <field name="incremental_percentage_snapshot" string="Increment %"/>
+                <field name="decision" widget="badge"
+                       decoration-success="decision == 'validated'"
+                       decoration-danger="decision == 'rejected'"
+                       decoration-warning="decision == 'correction_requested'"/>
+                <field name="validator_id"/>
+                <field name="validator_role"/>
+                <field name="validation_hash" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View (Read-Only) -->
+    <record id="view_execution_validation_form" model="ir.ui.view">
+        <field name="name">execution.validation.form</field>
+        <field name="model">execution.validation</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-lock"/> This record is immutable and cannot be modified.
+                    </div>
+                    <group>
+                        <group string="Validation Decision">
+                            <field name="decision"/>
+                            <field name="validation_datetime"/>
+                            <field name="validator_id"/>
+                            <field name="validator_role"/>
+                        </group>
+                        <group string="Progress Reference">
+                            <field name="progress_id"/>
+                            <field name="task_id"/>
+                            <field name="project_id"/>
+                        </group>
+                    </group>
+                    <group string="Progress Snapshot (at validation time)">
+                        <group>
+                            <field name="previous_percentage_snapshot"/>
+                            <field name="declared_percentage_snapshot"/>
+                            <field name="incremental_percentage_snapshot"/>
+                        </group>
+                    </group>
+                    <group string="Comment" invisible="not comment">
+                        <field name="comment" nolabel="1" colspan="2"/>
+                    </group>
+                    <group string="Integrity">
+                        <field name="validation_hash"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_execution_validation" model="ir.actions.act_window">
+        <field name="name">Validation Audit Trail</field>
+        <field name="res_model">execution.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No validation records yet
+            </p>
+            <p>
+                Validation records are created automatically when progress declarations are validated, rejected, or sent back for correction.
+                <br/><strong>These records are immutable and serve as the audit trail.</strong>
+            </p>
+        </field>
+    </record>
+
+
+</odoo>

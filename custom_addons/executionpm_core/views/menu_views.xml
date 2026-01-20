@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- ================================================================
+         MAIN MENU STRUCTURE
+    ================================================================= -->
+
+    <!-- Root Menu -->
+    <menuitem id="menu_executionpm_root"
+              name="Execution PM"
+              sequence="45"
+              web_icon="executionpm_core,static/description/icon.png"
+              groups="executionpm_core.group_executionpm_user"/>
+
+    <!-- ================================================================
+         PROJECTS MENU
+    ================================================================= -->
+    
+    <menuitem id="menu_executionpm_projects"
+              name="Projects"
+              parent="menu_executionpm_root"
+              sequence="10"/>
+
+    <menuitem id="menu_execution_project_all"
+              name="All Projects"
+              parent="menu_executionpm_projects"
+              action="action_execution_project"
+              sequence="10"/>
+
+    <menuitem id="menu_execution_project_dashboard"
+              name="Project Dashboard"
+              parent="menu_executionpm_projects"
+              action="action_execution_project_dashboard"
+              sequence="20"/>
+
+    <!-- ================================================================
+         CONFIGURATION MENU
+    ================================================================= -->
+
+    <menuitem id="menu_executionpm_configuration"
+              name="Configuration"
+              parent="menu_executionpm_root"
+              sequence="100"
+              groups="executionpm_core.group_executionpm_admin"/>
+
+    <!-- Configuration: Dropdown submenu -->
+    <menuitem id="menu_executionpm_config_general"
+              name="General"
+              parent="menu_executionpm_configuration"
+              sequence="10"/>
+
+    <menuitem id="menu_execution_project_type"
+              name="Project Types"
+              parent="menu_executionpm_config_general"
+              action="action_execution_project_type"
+              sequence="10"/>
+
+    <menuitem id="menu_execution_sector"
+              name="Sectors"
+              parent="menu_executionpm_config_general"
+              action="action_execution_sector"
+              sequence="20"/>
+
+    <menuitem id="menu_execution_funding_source"
+              name="Funding Sources"
+              parent="menu_executionpm_config_general"
+              action="action_execution_funding_source"
+              sequence="30"/>
+
+
+</odoo>

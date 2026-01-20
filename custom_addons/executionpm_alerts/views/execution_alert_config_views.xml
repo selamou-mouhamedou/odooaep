@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================
+         ALERT CONFIGURATION VIEWS
+    ================================================================= -->
+
+    <!-- ========== FORM VIEW ========== -->
+    <record id="view_execution_alert_config_form" model="ir.ui.view">
+        <field name="name">execution.alert.config.form</field>
+        <field name="model">execution.alert.config</field>
+        <field name="arch" type="xml">
+            <form string="Alert Configuration">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <!-- Delay Alert Settings -->
+                        <page string="Delay Alerts" name="delay_settings">
+                            <group>
+                                <group string="Enable/Disable">
+                                    <field name="delay_alert_enabled"/>
+                                </group>
+                                <group string="Base Threshold">
+                                    <field name="delay_threshold_days" 
+                                           invisible="not delay_alert_enabled"/>
+                                </group>
+                            </group>
+                            <group string="Severity Thresholds" 
+                                   invisible="not delay_alert_enabled">
+                                <group>
+                                    <field name="medium_delay_days"/>
+                                    <field name="high_delay_days"/>
+                                    <field name="critical_delay_days"/>
+                                </group>
+                                <group>
+                                    <div class="alert alert-info">
+                                        <strong>Severity Rules:</strong>
+                                        <ul>
+                                            <li><strong>Low:</strong> Below medium threshold</li>
+                                            <li><strong>Medium:</strong> ≥ <field name="medium_delay_days" readonly="1" class="d-inline"/> days</li>
+                                            <li><strong>High:</strong> ≥ <field name="high_delay_days" readonly="1" class="d-inline"/> days</li>
+                                            <li><strong>Critical:</strong> ≥ <field name="critical_delay_days" readonly="1" class="d-inline"/> days</li>
+                                        </ul>
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="mt-3">
+                                <button name="action_test_delay_check" 
+                                        string="Test Delay Check Now" 
+                                        type="object"
+                                        class="btn-primary"
+                                        icon="fa-play"/>
+                            </div>
+                        </page>
+
+                        <!-- Inactivity Alert Settings -->
+                        <page string="Inactivity Alerts" name="inactivity_settings">
+                            <group>
+                                <group string="Settings">
+                                    <field name="inactivity_alert_enabled"/>
+                                    <field name="inactivity_threshold_days" 
+                                           invisible="not inactivity_alert_enabled"/>
+                                </group>
+                                <group>
+                                    <div class="alert alert-info" 
+                                         invisible="not inactivity_alert_enabled">
+                                        <p>
+                                            An inactivity alert will be generated when a running project 
+                                            has no progress declarations for more than 
+                                            <strong><field name="inactivity_threshold_days" readonly="1" class="d-inline"/></strong> days.
+                                        </p>
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="mt-3">
+                                <button name="action_test_inactivity_check" 
+                                        string="Test Inactivity Check Now" 
+                                        type="object"
+                                        class="btn-primary"
+                                        icon="fa-play"/>
+                            </div>
+                        </page>
+
+                        <!-- Inconsistency Alert Settings -->
+                        <page string="Inconsistency Alerts" name="inconsistency_settings">
+                            <group>
+                                <group string="Enable/Disable">
+                                    <field name="inconsistency_alert_enabled"/>
+                                </group>
+                                <group string="Base Threshold">
+                                    <field name="inconsistency_threshold_percent" 
+                                           invisible="not inconsistency_alert_enabled"/>
+                                </group>
+                            </group>
+                            <group string="Severity Thresholds" 
+                                   invisible="not inconsistency_alert_enabled">
+                                <group>
+                                    <field name="medium_inconsistency_percent"/>
+                                    <field name="high_inconsistency_percent"/>
+                                    <field name="critical_inconsistency_percent"/>
+                                </group>
+                                <group>
+                                    <div class="alert alert-info">
+                                        <strong>Severity Rules (Progress Deviation):</strong>
+                                        <ul>
+                                            <li><strong>Low:</strong> Below medium threshold</li>
+                                            <li><strong>Medium:</strong> ≥ <field name="medium_inconsistency_percent" readonly="1" class="d-inline"/>%</li>
+                                            <li><strong>High:</strong> ≥ <field name="high_inconsistency_percent" readonly="1" class="d-inline"/>%</li>
+                                            <li><strong>Critical:</strong> ≥ <field name="critical_inconsistency_percent" readonly="1" class="d-inline"/>%</li>
+                                        </ul>
+                                    </div>
+                                </group>
+                            </group>
+                            <div class="mt-3">
+                                <button name="action_test_inconsistency_check" 
+                                        string="Test Inconsistency Check Now" 
+                                        type="object"
+                                        class="btn-primary"
+                                        icon="fa-play"/>
+                            </div>
+                        </page>
+
+                        <!-- Notification Settings -->
+                        <page string="Notifications" name="notification_settings">
+                            <group>
+                                <group string="Auto Notifications">
+                                    <field name="auto_notify"/>
+                                    <field name="notify_project_manager"/>
+                                </group>
+                                <group string="Reminders">
+                                    <field name="reminder_enabled"/>
+                                    <field name="reminder_interval_days" 
+                                           invisible="not reminder_enabled"/>
+                                    <field name="max_reminders" 
+                                           invisible="not reminder_enabled"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Default Settings">
+                                    <field name="default_due_days"/>
+                                </group>
+                            </group>
+                            <group string="Additional Recipients">
+                                <field name="notify_users" widget="many2many_tags"/>
+                                <field name="notify_groups" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== LIST VIEW ========== -->
+    <record id="view_execution_alert_config_list" model="ir.ui.view">
+        <field name="name">execution.alert.config.list</field>
+        <field name="model">execution.alert.config</field>
+        <field name="arch" type="xml">
+            <list string="Alert Configurations">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="delay_alert_enabled"/>
+                <field name="inactivity_alert_enabled"/>
+                <field name="inconsistency_alert_enabled"/>
+                <field name="auto_notify"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== ACTION ========== -->
+    <record id="action_execution_alert_config" model="ir.actions.act_window">
+        <field name="name">Alert Configuration</field>
+        <field name="res_model">execution.alert.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>

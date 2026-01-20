@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================
+         MENU STRUCTURE FOR ALERTS
+    ================================================================= -->
+
+    <!-- Main Alerts Menu under ExecutionPM -->
+    <menuitem id="menu_executionpm_alerts"
+              name="Alerts"
+              parent="executionpm_core.menu_executionpm_root"
+              sequence="50"/>
+
+    <!-- All Alerts -->
+    <menuitem id="menu_execution_alert_all"
+              name="All Alerts"
+              parent="menu_executionpm_alerts"
+              action="action_execution_alert"
+              sequence="10"/>
+
+    <!-- My Alerts -->
+    <menuitem id="menu_execution_alert_my"
+              name="My Alerts"
+              parent="menu_executionpm_alerts"
+              action="action_execution_alert_my"
+              sequence="20"/>
+
+    <!-- Critical Alerts -->
+    <menuitem id="menu_execution_alert_critical"
+              name="Critical Alerts"
+              parent="menu_executionpm_alerts"
+              action="action_execution_alert_critical"
+              sequence="30"/>
+
+    <!-- Configuration Menu -->
+    <menuitem id="menu_executionpm_alerts_config"
+              name="Configuration"
+              parent="menu_executionpm_alerts"
+              sequence="100"
+              groups="executionpm_core.group_executionpm_manager"/>
+
+    <menuitem id="menu_execution_alert_config"
+              name="Alert Settings"
+              parent="menu_executionpm_alerts_config"
+              action="action_execution_alert_config"
+              sequence="10"/>
+
+</odoo>

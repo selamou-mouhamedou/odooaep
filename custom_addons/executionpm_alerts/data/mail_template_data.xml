@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="mail_template_execution_alert" model="mail.template">
+        <field name="name">Execution Alert Notification</field>
+        <field name="model_id" search="[('model', '=', 'execution.alert')]"/>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.assigned_to.email if object.assigned_to else '' }}</field>
+        <field name="subject">[{{ object.severity.replace('_', ' ').title() }}] {{ object.title }} - {{ object.project_id.name }}</field>
+        <field name="body_html" type="html">
+<![CDATA[
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
+    <tr>
+        <td style="padding: 20px; background-color: #dc3545; color: white; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">Execution Alert</h1>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 30px; background-color: #f8f9fa;">
+            <h2 style="color: #333; margin-top: 0;">{{ object.title }}</h2>
+            <p><strong>Project:</strong> {{ object.project_id.name }}</p>
+            <p><strong>Alert Type:</strong> {{ object.alert_type }}</p>
+            <p><strong>Severity:</strong> {{ object.severity }}</p>
+            <div style="background: white; padding: 15px; border: 1px solid #ddd; margin-bottom: 20px;">
+                <strong>Details:</strong>
+                <div style="margin-top: 10px;">{{ object.description }}</div>
+            </div>
+        </td>
+    </tr>
+    </table>
+</div>
+]]>
+        </field>
+        <field name="auto_delete">False</field>
+    </record>
+
+    <record id="mail_template_execution_alert_reminder" model="mail.template">
+        <field name="name">Execution Alert Reminder</field>
+        <field name="model_id" search="[('model', '=', 'execution.alert')]"/>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.assigned_to.email if object.assigned_to else '' }}</field>
+        <field name="subject">[REMINDER] {{ object.title }} - {{ object.project_id.name }}</field>
+        <field name="body_html" type="html">
+<![CDATA[
+<div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
+    <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
+    <tr>
+        <td style="padding: 20px; background-color: #6c757d; color: white; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">Alert Reminder</h1>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 30px; background-color: #f8f9fa;">
+            <p>This is a reminder about an unresolved alert:</p>
+            <h2 style="margin-top: 0;">{{ object.title }}</h2>
+            <p><strong>Project:</strong> {{ object.project_id.name }}</p>
+            <p><strong>Days Open:</strong> {{ object.days_open }} days</p>
+        </td>
+    </tr>
+    </table>
+</div>
+]]>
+        </field>
+        <field name="auto_delete">False</field>
+    </record>
+
+</odoo>

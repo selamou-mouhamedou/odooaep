@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- ================================================================
+         EXECUTION FUNDING SOURCE VIEWS
+    ================================================================= -->
+
+    <!-- ========== TREE VIEW ========== -->
+    <record id="view_execution_funding_source_tree" model="ir.ui.view">
+        <field name="name">execution.funding.source.tree</field>
+        <field name="model">execution.funding.source</field>
+        <field name="arch" type="xml">
+            <list string="Funding Sources">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="funding_type" widget="badge"/>
+                <field name="partner_id" optional="show"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="project_count"/>
+                <field name="total_funded_amount" optional="show"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== FORM VIEW ========== -->
+    <record id="view_execution_funding_source_form" model="ir.ui.view">
+        <field name="name">execution.funding.source.form</field>
+        <field name="model">execution.funding.source</field>
+        <field name="arch" type="xml">
+            <form string="Funding Source">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" 
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., World Bank"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g., WB"/>
+                            <field name="funding_type"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="project_count"/>
+                        </group>
+                        <group>
+                            <field name="total_funded_amount"/>
+                        </group>
+                    </group>
+                    <separator string="Description"/>
+                    <field name="description" placeholder="Describe this funding source..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== KANBAN VIEW ========== -->
+    <record id="view_execution_funding_source_kanban" model="ir.ui.view">
+        <field name="name">execution.funding.source.kanban</field>
+        <field name="model">execution.funding.source</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="funding_type"/>
+                <field name="color"/>
+                <field name="project_count"/>
+                <field name="total_funded_amount"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <span class="o_primary"><field name="name"/></span>
+                                </div>
+                            </div>
+                            <div class="container o_kanban_card_content">
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <field name="funding_type" widget="badge"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span class="text-muted">Projects</span>
+                                        <div><field name="project_count"/></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="text-muted">Total Funded</span>
+                                        <div>
+                                            <field name="total_funded_amount" widget="monetary"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========== SEARCH VIEW ========== -->
+    <record id="view_execution_funding_source_search" model="ir.ui.view">
+        <field name="name">execution.funding.source.search</field>
+        <field name="model">execution.funding.source</field>
+        <field name="arch" type="xml">
+            <search string="Search Funding Sources">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="partner_id"/>
+                <filter string="Government" name="filter_government" 
+                        domain="[('funding_type', '=', 'government')]"/>
+                <filter string="International Donors" name="filter_international" 
+                        domain="[('funding_type', '=', 'international')]"/>
+                <filter string="Private" name="filter_private" 
+                        domain="[('funding_type', '=', 'private')]"/>
+                <filter string="PPP" name="filter_ppp" 
+                        domain="[('funding_type', '=', 'ppp')]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Funding Type" name="group_type" 
+                            context="{'group_by': 'funding_type'}"/>
+                    <filter string="Partner" name="group_partner" 
+                            context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== ACTION ========== -->
+    <record id="action_execution_funding_source" model="ir.actions.act_window">
+        <field name="name">Funding Sources</field>
+        <field name="res_model">execution.funding.source</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new funding source
+            </p>
+            <p>
+                Define funding sources for your projects (Government, Donors, PPP, etc.)
+            </p>
+        </field>
+    </record>
+
+
+</odoo>

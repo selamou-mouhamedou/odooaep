@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Rule: Users can only modify draft planning -->
+    <!-- Managers bypass this via other rules or implicit super rights, but let's be explicit if needed -->
+    
+    <record id="rule_execution_planning_user_edit" model="ir.rule">
+        <field name="name">User: Modify Planning Only in Draft</field>
+        <field name="model_id" ref="model_execution_planning"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_user'))]"/>
+        <field name="domain_force">[('state', '=', 'draft')]</field>
+        <field name="perm_read" eval="0"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+    
+    <!-- Allow Managers to Modify Submitted Planning (for approval/rejection) -->
+    <record id="rule_execution_planning_manager_edit" model="ir.rule">
+        <field name="name">Manager: Modify All Planning</field>
+        <field name="model_id" ref="model_execution_planning"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+
+</odoo>

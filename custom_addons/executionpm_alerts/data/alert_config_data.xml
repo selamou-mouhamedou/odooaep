@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="seq_execution_alert" model="ir.sequence">
+        <field name="name">Execution Alert Sequence</field>
+        <field name="code">execution.alert</field>
+        <field name="prefix">ALT-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="default_alert_config" model="execution.alert.config">
+        <field name="name">Default Alert Configuration</field>
+        <field name="active">True</field>
+        <field name="delay_alert_enabled">True</field>
+        <field name="delay_threshold_days">3</field>
+        <field name="medium_delay_days">3</field>
+        <field name="high_delay_days">7</field>
+        <field name="critical_delay_days">14</field>
+        <field name="inactivity_alert_enabled">True</field>
+        <field name="inactivity_threshold_days">7</field>
+        <field name="inconsistency_alert_enabled">True</field>
+        <field name="inconsistency_threshold_percent">15.0</field>
+        <field name="medium_inconsistency_percent">15.0</field>
+        <field name="high_inconsistency_percent">25.0</field>
+        <field name="critical_inconsistency_percent">40.0</field>
+        <field name="auto_notify">True</field>
+        <field name="reminder_enabled">True</field>
+        <field name="reminder_interval_days">3</field>
+        <field name="max_reminders">5</field>
+        <field name="default_due_days">7</field>
+        <field name="notify_project_manager">True</field>
+    </record>
+
+</odoo>

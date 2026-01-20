@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_execution_project_type_user,execution.project.type.user,model_execution_project_type,group_executionpm_user,1,0,0,0
+access_execution_project_type_admin,execution.project.type.admin,model_execution_project_type,group_executionpm_admin,1,1,1,1
+access_execution_sector_user,execution.sector.user,model_execution_sector,group_executionpm_user,1,0,0,0
+access_execution_sector_admin,execution.sector.admin,model_execution_sector,group_executionpm_admin,1,1,1,1
+access_execution_funding_source_user,execution.funding.source.user,model_execution_funding_source,group_executionpm_user,1,0,0,0
+access_execution_funding_source_admin,execution.funding.source.admin,model_execution_funding_source,group_executionpm_admin,1,1,1,1

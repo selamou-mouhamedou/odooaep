@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================ -->
+    <!-- PLANNING TASK VIEWS - Progress Computation Fields -->
+    <!-- ================================================================ -->
+    
+    <!-- Extend Task List to show validated progress and deviation -->
+    <record id="view_planning_task_progress_list_inherit" model="ir.ui.view">
+        <field name="name">execution.planning.task.progress.list.inherit</field>
+        <field name="model">execution.planning.task</field>
+        <field name="inherit_id" ref="executionpm_planning.view_execution_planning_task_tree"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <field name="weight" position="after">
+                <field name="validated_progress" widget="progressbar"/>
+                <field name="progress_deviation" 
+                       decoration-danger="progress_deviation &lt; -10"
+                       decoration-warning="progress_deviation &lt; 0 and progress_deviation &gt;= -10"
+                       decoration-success="progress_deviation &gt;= 0"/>
+                <field name="weighted_contribution"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Extend Task Form to show progress details -->
+    <record id="view_planning_task_progress_form_inherit" model="ir.ui.view">
+        <field name="name">execution.planning.task.progress.form.inherit</field>
+        <field name="model">execution.planning.task</field>
+        <field name="inherit_id" ref="executionpm_planning.view_execution_planning_task_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Add progress stat buttons -->
+            <xpath expr="//sheet" position="inside">
+                <group string="Progress Analysis" name="progress_analysis">
+                    <group>
+                        <field name="validated_progress" widget="progressbar"/>
+                        <field name="validated_declaration_count"/>
+                        <field name="last_validated_date"/>
+                    </group>
+                    <group>
+                        <field name="planned_progress_to_date"/>
+                        <field name="progress_deviation" 
+                               decoration-danger="progress_deviation &lt; -10"
+                               decoration-warning="progress_deviation &lt; 0 and progress_deviation &gt;= -10"
+                               decoration-success="progress_deviation &gt;= 0"/>
+                        <field name="weighted_contribution"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- PLANNING VIEWS - Overall Progress -->
+    <!-- ================================================================ -->
+    
+    <!-- Extend Planning Form to show overall progress -->
+    <record id="view_planning_overall_progress_inherit" model="ir.ui.view">
+        <field name="name">execution.planning.overall.progress.inherit</field>
+        <field name="model">execution.planning</field>
+        <field name="inherit_id" ref="executionpm_planning.view_execution_planning_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Progress Summary" name="progress_summary" 
+                       invisible="state != 'approved'">
+                    <group>
+                        <field name="overall_validated_progress" widget="progressbar"/>
+                    </group>
+                    <group>
+                        <field name="tasks_completed_count"/>
+                        <field name="tasks_in_progress_count"/>
+                        <field name="tasks_not_started_count"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- PROJECT VIEWS - Global Progress & S-Curve -->
+    <!-- ================================================================ -->
+    
+    <!-- Extend Project Form to show computed progress -->
+    <record id="view_project_computed_progress_inherit" model="ir.ui.view">
+        <field name="name">project.project.computed.progress.inherit</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="executionpm_core.view_execution_project_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Add refresh button to button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_refresh_progress" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-refresh"
+                        invisible="not is_execution_project">
+                    <div class="o_stat_info">
+                        <field name="computed_physical_progress" class="o_stat_value" widget="float"/>
+                        <span class="o_stat_text">% Progress</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Add computed progress fields -->
+            <xpath expr="//field[@name='execution_physical_progress']" position="after">
+                <field name="computed_physical_progress" readonly="1"/>
+                <field name="progress_last_updated" readonly="1"/>
+                <field name="active_planning_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- S-Curve View Form (Popup) -->
+    <record id="view_project_scurve_form" model="ir.ui.view">
+        <field name="name">project.project.scurve.form</field>
+        <field name="model">project.project</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="S-Curve Analysis">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h3>Progress S-Curve Analysis</h3>
+                    </div>
+                    <group>
+                        <group string="Current Status">
+                            <field name="computed_physical_progress" widget="progressbar"/>
+                            <field name="progress_last_updated"/>
+                        </group>
+                        <group string="Planning">
+                            <field name="active_planning_id"/>
+                            <field name="execution_planned_start"/>
+                            <field name="execution_planned_end"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="S-Curve Data">
+                            <group>
+                                <field name="planned_curve_data" widget="text" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="actual_curve_data" widget="text" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================ -->
+    <!-- DASHBOARD ACTION -->
+    <!-- ================================================================ -->
+    
+    <!-- Action to view projects with progress -->
+    <record id="action_project_progress_dashboard" model="ir.actions.act_window">
+        <field name="name">Project Progress Dashboard</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_execution_project', '=', True)]</field>
+        <field name="context">{
+            'default_is_execution_project': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No execution projects found
+            </p>
+        </field>
+    </record>
+
+
+</odoo>

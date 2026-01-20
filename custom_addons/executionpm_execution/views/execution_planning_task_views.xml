@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extend Planning Task List View to show actual progress -->
+    <record id="view_execution_planning_task_list_inherit" model="ir.ui.view">
+        <field name="name">execution.planning.task.list.inherit.execution</field>
+        <field name="model">execution.planning.task</field>
+        <field name="inherit_id" ref="executionpm_planning.view_execution_planning_task_tree"/>
+        <field name="arch" type="xml">
+            <field name="weight" position="after">
+                <field name="actual_progress" widget="progressbar"/>
+                <field name="progress_status" widget="badge"
+                       decoration-muted="progress_status == 'not_started'"
+                       decoration-primary="progress_status == 'in_progress'"
+                       decoration-success="progress_status == 'completed'"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

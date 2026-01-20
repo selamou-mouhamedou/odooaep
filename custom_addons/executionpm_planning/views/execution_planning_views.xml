@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- Search View -->
+    <record id="view_execution_planning_search" model="ir.ui.view">
+        <field name="name">execution.planning.search</field>
+        <field name="model">execution.planning</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <filter string="My Projects" name="my_projects" domain="[('project_id.user_id', '=', uid)]"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" name="submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Project" name="group_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_execution_planning_tree" model="ir.ui.view">
+        <field name="name">execution.planning.tree</field>
+        <field name="model">execution.planning</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'draft'" 
+                  decoration-primary="state == 'submitted'" 
+                  decoration-success="state == 'approved'" 
+                  decoration-danger="state == 'rejected'">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <field name="task_count"/>
+                <field name="total_physical_weight" widget="progressbar"/>
+                <field name="planning_start_date"/>
+                <field name="planning_end_date"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-primary="state == 'submitted'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_execution_planning_form" model="ir.ui.view">
+        <field name="name">execution.planning.form</field>
+        <field name="model">execution.planning</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <!-- Contractor Actions -->
+                    <button name="action_submit" 
+                            string="Submit for Approval" 
+                            type="object" 
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    
+                    <!-- PMO Actions -->
+                    <button name="action_approve" 
+                            string="Approve Planning" 
+                            type="object" 
+                            class="oe_highlight"
+                            invisible="state != 'submitted'"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                            
+                    <button name="action_reject" 
+                            string="Reject" 
+                            type="object" 
+                            class="btn-danger"
+                            invisible="state != 'submitted'"
+                            groups="executionpm_core.group_executionpm_manager"/>
+                            
+                    <button name="action_reset_draft" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state not in ('rejected', 'submitted')"/>
+                            
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id" readonly="state != 'draft'"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="planning_start_date"/>
+                            <field name="planning_end_date"/>
+                            <field name="total_physical_weight" widget="progressbar"/>
+                        </group>
+                    </group>
+                    
+                    <div class="alert alert-danger" role="alert" 
+                         invisible="not rejection_reason or state != 'rejected'">
+                        <strong>Rejected: </strong> <field name="rejection_reason" readonly="1"/>
+                    </div>
+
+                    <notebook>
+                        <page string="Planning Details">
+                            <field name="lot_ids" mode="list" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                    <!-- Nested many2many showing simplified task view -->
+                                </list>
+                                <form>
+                                    <group>
+                                        <field name="name"/>
+                                        <field name="sequence"/>
+                                    </group>
+                                    <field name="task_ids">
+                                        <list editable="bottom" decoration-info="parent_task_id != False">
+                                            <field name="name"/>
+                                            <field name="date_start"/>
+                                            <field name="date_end"/>
+                                            <field name="duration"/>
+                                            <field name="weight" sum="Total Weight"/>
+                                            <field name="parent_task_id" optional="hide"/>
+                                        </list>
+                                    </field>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action -->
+    <record id="action_execution_planning" model="ir.actions.act_window">
+        <field name="name">Execution Planning</field>
+        <field name="res_model">execution.planning</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Execution Planning
+            </p>
+            <p>
+                Contractors must submit their detailed work plan (Lots -> Tasks) here.
+                Total weight must equal 100% for approval.
+            </p>
+        </field>
+    </record>
+
+
+</odoo>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- ================================================================
+         EXECUTION SECTOR VIEWS
+    ================================================================= -->
+
+    <!-- ========== TREE VIEW ========== -->
+    <record id="view_execution_sector_tree" model="ir.ui.view">
+        <field name="name">execution.sector.tree</field>
+        <field name="model">execution.sector</field>
+        <field name="arch" type="xml">
+            <list string="Sectors">
+                <field name="code"/>
+                <field name="complete_name"/>
+                <field name="parent_id" optional="show"/>
+                <field name="country_id" optional="show"/>
+                <field name="state_id" optional="hide"/>
+                <field name="project_count"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== FORM VIEW ========== -->
+    <record id="view_execution_sector_form" model="ir.ui.view">
+        <field name="name">execution.sector.form</field>
+        <field name="model">execution.sector</field>
+        <field name="arch" type="xml">
+            <form string="Sector">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" 
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., North Region"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g., NORTH"/>
+                            <field name="parent_id"/>
+                            <field name="complete_name" invisible="not parent_id"/>
+                        </group>
+                        <group>
+                            <field name="country_id" options="{'no_create': True}"/>
+                            <field name="state_id" options="{'no_create': True}"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="project_count"/>
+                    </group>
+                    <separator string="Description"/>
+                    <field name="description" placeholder="Describe this sector..."/>
+                    <notebook invisible="not child_ids">
+                        <page string="Child Sectors" name="child_sectors">
+                            <field name="child_ids">
+                                <list>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="project_count"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== SEARCH VIEW ========== -->
+    <record id="view_execution_sector_search" model="ir.ui.view">
+        <field name="name">execution.sector.search</field>
+        <field name="model">execution.sector</field>
+        <field name="arch" type="xml">
+            <search string="Search Sectors">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="complete_name"/>
+                <field name="parent_id"/>
+                <filter string="Top Level" name="filter_top_level" 
+                        domain="[('parent_id', '=', False)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Parent Sector" name="group_parent" 
+                            context="{'group_by': 'parent_id'}"/>
+                    <filter string="Country" name="group_country" 
+                            context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== ACTION ========== -->
+    <record id="action_execution_sector" model="ir.actions.act_window">
+        <field name="name">Sectors</field>
+        <field name="res_model">execution.sector</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new sector
+            </p>
+            <p>
+                Define geographic or administrative sectors for your projects.
+                Sectors can be hierarchical (regions containing districts).
+            </p>
+        </field>
+    </record>
+
+
+</odoo>

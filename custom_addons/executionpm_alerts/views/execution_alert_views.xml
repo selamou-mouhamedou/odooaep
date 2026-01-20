@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================
+         EXECUTION ALERT VIEWS
+    ================================================================= -->
+
+    <!-- ========== SEARCH VIEW ========== -->
+    <record id="view_execution_alert_search" model="ir.ui.view">
+        <field name="name">execution.alert.search</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <search string="Search Alerts">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="project_id"/>
+                <field name="task_id"/>
+                <field name="assigned_to"/>
+                <separator/>
+                <!-- State Filters -->
+                <filter string="Open" name="filter_open" 
+                        domain="[('state', '=', 'open')]"/>
+                <filter string="Acknowledged" name="filter_acknowledged" 
+                        domain="[('state', '=', 'acknowledged')]"/>
+                <filter string="In Progress" name="filter_in_progress" 
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Resolved" name="filter_resolved" 
+                        domain="[('state', '=', 'resolved')]"/>
+                <filter string="Active" name="filter_active" 
+                        domain="[('state', 'not in', ['resolved', 'dismissed'])]"/>
+                <separator/>
+                <!-- Severity Filters -->
+                <filter string="Critical" name="filter_critical" 
+                        domain="[('severity', '=', '4_critical')]"
+                        icon="fa-exclamation-circle"/>
+                <filter string="High" name="filter_high" 
+                        domain="[('severity', '=', '3_high')]"/>
+                <filter string="Medium" name="filter_medium" 
+                        domain="[('severity', '=', '2_medium')]"/>
+                <separator/>
+                <!-- Type Filters -->
+                <filter string="Delay Alerts" name="filter_delay" 
+                        domain="[('alert_type', '=', 'delay')]"/>
+                <filter string="Inactivity Alerts" name="filter_inactivity" 
+                        domain="[('alert_type', '=', 'inactivity')]"/>
+                <filter string="Inconsistency Alerts" name="filter_inconsistency" 
+                        domain="[('alert_type', '=', 'inconsistency')]"/>
+                <separator/>
+                <filter string="Overdue" name="filter_overdue" 
+                        domain="[('is_overdue', '=', True)]"/>
+                <filter string="My Alerts" name="filter_my_alerts" 
+                        domain="[('assigned_to', '=', uid)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="State" name="group_state" 
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Severity" name="group_severity" 
+                            context="{'group_by': 'severity'}"/>
+                    <filter string="Type" name="group_type" 
+                            context="{'group_by': 'alert_type'}"/>
+                    <filter string="Project" name="group_project" 
+                            context="{'group_by': 'project_id'}"/>
+                    <filter string="Assigned To" name="group_assigned" 
+                            context="{'group_by': 'assigned_to'}"/>
+                    <filter string="Alert Date" name="group_date" 
+                            context="{'group_by': 'alert_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== LIST VIEW ========== -->
+    <record id="view_execution_alert_list" model="ir.ui.view">
+        <field name="name">execution.alert.list</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <list string="Alerts" 
+                  decoration-danger="severity == '4_critical' and state not in ('resolved', 'dismissed')"
+                  decoration-warning="severity == '3_high' and state not in ('resolved', 'dismissed')"
+                  decoration-info="severity == '2_medium' and state not in ('resolved', 'dismissed')"
+                  decoration-muted="state in ('resolved', 'dismissed')"
+                  multi_edit="1">
+                <field name="name"/>
+                <field name="alert_type" decoration-info="1"/>
+                <field name="title"/>
+                <field name="project_id"/>
+                <field name="task_id" optional="show"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == '4_critical'"
+                       decoration-warning="severity == '3_high'"
+                       decoration-info="severity == '2_medium'"
+                       decoration-success="severity == '1_low'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'open'"
+                       decoration-warning="state == 'acknowledged'"
+                       decoration-primary="state == 'in_progress'"
+                       decoration-success="state == 'resolved'"
+                       decoration-muted="state == 'dismissed'"/>
+                <field name="alert_date"/>
+                <field name="due_date" optional="show"/>
+                <field name="days_open" optional="show"/>
+                <field name="is_overdue" optional="hide"/>
+                <field name="assigned_to" widget="many2one_avatar_user"/>
+                <field name="notification_sent" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== FORM VIEW ========== -->
+    <record id="view_execution_alert_form" model="ir.ui.view">
+        <field name="name">execution.alert.form</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <form string="Alert">
+                <header>
+                    <button name="action_acknowledge" 
+                            string="Acknowledge" 
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'open'"/>
+                    <button name="action_start_progress" 
+                            string="Start Progress" 
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'acknowledged'"/>
+                    <button name="action_resolve" 
+                            string="Resolve" 
+                            type="object"
+                            class="btn-success"
+                            invisible="state not in ('open', 'acknowledged', 'in_progress')"/>
+                    <button name="action_dismiss" 
+                            string="Dismiss" 
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state in ('resolved', 'dismissed')"/>
+                    <button name="action_reopen" 
+                            string="Reopen" 
+                            type="object"
+                            invisible="state not in ('resolved', 'dismissed')"/>
+                    <button name="action_send_notification" 
+                            string="Send Notification" 
+                            type="object"
+                            icon="fa-envelope"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="open,acknowledged,in_progress,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_project" 
+                                type="object" 
+                                class="oe_stat_button" 
+                                icon="fa-building">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Project</span>
+                            </div>
+                        </button>
+                        <button name="action_view_task" 
+                                type="object" 
+                                class="oe_stat_button" 
+                                icon="fa-tasks"
+                                invisible="not task_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Task</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Overdue" bg_color="text-bg-danger" 
+                            invisible="not is_overdue"/>
+                    <widget name="web_ribbon" title="Critical" bg_color="text-bg-danger" 
+                            invisible="severity != '4_critical' or is_overdue"/>
+                    <div class="oe_title">
+                        <label for="title"/>
+                        <h1><field name="title" placeholder="Alert Title"/></h1>
+                        <field name="name" readonly="1"/>
+                    </div>
+                    <group>
+                        <group string="Alert Details">
+                            <field name="alert_type"/>
+                            <field name="severity"/>
+                            <field name="project_id"/>
+                            <field name="planning_id" invisible="not planning_id"/>
+                            <field name="task_id" invisible="not task_id"/>
+                        </group>
+                        <group string="Assignment">
+                            <field name="assigned_to"/>
+                            <field name="alert_date"/>
+                            <field name="due_date"/>
+                            <field name="days_open"/>
+                            <field name="is_overdue" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Threshold Analysis" 
+                           invisible="not threshold_value and not actual_value">
+                        <group>
+                            <field name="threshold_value"/>
+                            <field name="actual_value"/>
+                        </group>
+                        <group>
+                            <field name="deviation"/>
+                            <field name="unit"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Resolution" name="resolution">
+                            <group>
+                                <group string="Resolution Details">
+                                    <field name="resolved_date" readonly="1"/>
+                                    <field name="resolved_by" readonly="1"/>
+                                </group>
+                                <group string="Acknowledgement">
+                                    <field name="acknowledged_date" readonly="1"/>
+                                    <field name="acknowledged_by" readonly="1"/>
+                                </group>
+                            </group>
+                            <separator string="Action Taken"/>
+                            <field name="action_taken" placeholder="Describe the action taken to resolve this alert..."/>
+                            <separator string="Resolution Notes"/>
+                            <field name="resolution_notes"/>
+                        </page>
+                        <page string="Notifications" name="notifications">
+                            <group>
+                                <group>
+                                    <field name="notification_sent"/>
+                                    <field name="reminder_count"/>
+                                    <field name="last_reminder_date"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== KANBAN VIEW ========== -->
+    <record id="view_execution_alert_kanban" model="ir.ui.view">
+        <field name="name">execution.alert.kanban</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" 
+                    class="o_kanban_mobile"
+                    quick_create="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="alert_type"/>
+                <field name="severity"/>
+                <field name="state"/>
+                <field name="project_id"/>
+                <field name="assigned_to"/>
+                <field name="days_open"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-att-class="'oe_kanban_color_' + record.color.raw_value">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="title"/>
+                                        </strong>
+                                        <span class="o_kanban_record_subtitle text-muted">
+                                            <field name="name"/>
+                                        </span>
+                                    </div>
+                                    <div class="o_kanban_record_top_right">
+                                        <field name="severity" widget="label_selection" 
+                                               options="{'classes': {'1_low': 'info', '2_medium': 'warning', '3_high': 'danger', '4_critical': 'danger'}}"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div class="mb-2">
+                                        <field name="project_id"/>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge bg-secondary">
+                                            <field name="alert_type"/>
+                                        </span>
+                                        <span class="text-muted">
+                                            <i class="fa fa-clock-o"/> <field name="days_open"/> days
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="activity_ids" widget="kanban_activity"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="assigned_to" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========== CALENDAR VIEW ========== -->
+    <record id="view_execution_alert_calendar" model="ir.ui.view">
+        <field name="name">execution.alert.calendar</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <calendar string="Alerts" date_start="alert_date" date_stop="due_date" 
+                      color="severity" mode="month" quick_create="0">
+                <field name="title"/>
+                <field name="project_id"/>
+                <field name="severity"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ========== PIVOT VIEW ========== -->
+    <record id="view_execution_alert_pivot" model="ir.ui.view">
+        <field name="name">execution.alert.pivot</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <pivot string="Alert Analysis">
+                <field name="project_id" type="row"/>
+                <field name="alert_type" type="col"/>
+                <field name="severity" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ========== GRAPH VIEW ========== -->
+    <record id="view_execution_alert_graph" model="ir.ui.view">
+        <field name="name">execution.alert.graph</field>
+        <field name="model">execution.alert</field>
+        <field name="arch" type="xml">
+            <graph string="Alert Statistics" type="bar">
+                <field name="project_id"/>
+                <field name="severity" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ========== ACTIONS ========== -->
+    <record id="action_execution_alert" model="ir.actions.act_window">
+        <field name="name">Alerts</field>
+        <field name="res_model">execution.alert</field>
+        <field name="view_mode">list,kanban,form,calendar,pivot,graph</field>
+        <field name="search_view_id" ref="view_execution_alert_search"/>
+        <field name="context">{
+            'search_default_filter_active': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No alerts found!
+            </p>
+            <p>
+                Alerts are automatically generated when execution issues are detected,
+                such as task delays, project inactivity, or progress inconsistencies.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_execution_alert_critical" model="ir.actions.act_window">
+        <field name="name">Critical Alerts</field>
+        <field name="res_model">execution.alert</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('severity', '=', '4_critical'), ('state', 'not in', ['resolved', 'dismissed'])]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_execution_alert_my" model="ir.actions.act_window">
+        <field name="name">My Alerts</field>
+        <field name="res_model">execution.alert</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('assigned_to', '=', uid)]</field>
+        <field name="context">{
+            'search_default_filter_active': 1
+        }</field>
+    </record>
+
+</odoo>

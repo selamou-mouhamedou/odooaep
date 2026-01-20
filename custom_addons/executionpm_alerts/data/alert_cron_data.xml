@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="cron_check_task_delays" model="ir.cron">
+        <field name="name">Execution Alerts: Check Task Delays</field>
+        <field name="model_id" search="[('model', '=', 'execution.alert')]"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_task_delays()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+        <field name="doall">False</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(days=1)).strftime('%Y-%m-%d 06:00:00')"/>
+    </record>
+
+    <record id="cron_check_inactivity" model="ir.cron">
+        <field name="name">Execution Alerts: Check Project Inactivity</field>
+        <field name="model_id" search="[('model', '=', 'execution.alert')]"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_inactivity()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+        <field name="doall">False</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(days=1)).strftime('%Y-%m-%d 07:00:00')"/>
+    </record>
+
+    <record id="cron_check_progress_inconsistency" model="ir.cron">
+        <field name="name">Execution Alerts: Check Progress Inconsistency</field>
+        <field name="model_id" search="[('model', '=', 'execution.alert')]"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_progress_inconsistency()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+        <field name="doall">False</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(days=1)).strftime('%Y-%m-%d 08:00:00')"/>
+    </record>
+
+    <record id="cron_send_alert_reminders" model="ir.cron">
+        <field name="name">Execution Alerts: Send Reminders</field>
+        <field name="model_id" search="[('model', '=', 'execution.alert')]"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_alert_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+        <field name="doall">False</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(days=1)).strftime('%Y-%m-%d 09:00:00')"/>
+    </record>
+
+</odoo>

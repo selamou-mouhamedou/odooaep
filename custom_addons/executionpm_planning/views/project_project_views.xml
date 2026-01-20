@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_execution_project_form_inherit_planning" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.planning</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="executionpm_core.view_execution_project_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button" type="object" 
+                        name="action_view_planning"
+                        icon="fa-calendar-o"
+                        invisible="not is_execution_project">
+                    <field string="Planning" name="planning_count" widget="statinfo"/>
+                </button>
+            </div>
+            
+            <xpath expr="//field[@name='execution_duration_planned']" position="after">
+                <field name="active_planning_id" readonly="1" invisible="not active_planning_id"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

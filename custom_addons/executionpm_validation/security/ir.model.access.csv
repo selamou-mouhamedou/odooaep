@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_execution_validation_user,execution.validation.user,model_execution_validation,executionpm_core.group_executionpm_user,1,0,0,0
+access_execution_validation_validator,execution.validation.validator,model_execution_validation,executionpm_core.group_executionpm_validator,1,0,1,0
+access_execution_validation_manager,execution.validation.manager,model_execution_validation,executionpm_core.group_executionpm_manager,1,0,1,0
+access_execution_validation_wizard_validator,execution.validation.wizard.validator,model_execution_validation_wizard,executionpm_core.group_executionpm_validator,1,1,1,1

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extend Progress Form to add correction workflow -->
+    <record id="view_execution_progress_form_inherit_validation" model="ir.ui.view">
+        <field name="name">execution.progress.form.inherit.validation</field>
+        <field name="model">execution.progress</field>
+        <field name="inherit_id" ref="executionpm_execution.view_execution_progress_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add validation history button -->
+            <div name="button_box" position="inside">
+                <button name="action_view_validation_history" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="fa-history"
+                        invisible="validation_count == 0">
+                    <field name="validation_count" string="Validations" widget="statinfo"/>
+                </button>
+            </div>
+            
+            <!-- Add Request Correction button -->
+            <button name="action_reject" position="before">
+                <button name="action_request_correction" 
+                        string="Request Correction" 
+                        type="object" 
+                        class="btn-warning"
+                        invisible="state not in ('submitted', 'under_review')"
+                        groups="executionpm_core.group_executionpm_validator"/>
+            </button>
+            
+            <!-- Add resubmit button for correction_requested state -->
+            <button name="action_reset_draft" position="after">
+                <button name="action_resubmit_after_correction" 
+                        string="Resubmit After Correction" 
+                        type="object" 
+                        class="oe_highlight"
+                        invisible="state != 'correction_requested'"/>
+            </button>
+            
+            <!-- Update statusbar to show correction_requested -->
+            <field name="state" position="attributes">
+                <attribute name="statusbar_visible">draft,submitted,under_review,validated</attribute>
+            </field>
+            
+            <!-- Add correction info alert - position after the oe_title div -->
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <div class="alert alert-warning" name="correction_alert" role="alert" 
+                     invisible="state != 'correction_requested'">
+                    <strong>Correction Required: </strong> 
+                    <field name="correction_comments" readonly="1"/>
+                    <br/>
+                    <small>Correction round: <field name="correction_count" readonly="1"/></small>
+                </div>
+            </xpath>
+            
+            <!-- Add last validation info - add fields after validated_date -->
+            <xpath expr="//field[@name='validated_date']" position="after">
+                <field name="last_validation_decision"/>
+                <field name="last_validator_id"/>
+            </xpath>
+            
+            <!-- Update the visibility of the parent group containing validated_by -->
+            <xpath expr="//field[@name='validated_by']/.." position="attributes">
+                <attribute name="invisible">state not in ('validated', 'rejected', 'correction_requested')</attribute>
+            </xpath>
+            
+        </field>
+    </record>
+
+    <!-- Extend Progress List to show correction state -->
+    <record id="view_execution_progress_list_inherit_validation" model="ir.ui.view">
+        <field name="name">execution.progress.list.inherit.validation</field>
+        <field name="model">execution.progress</field>
+        <field name="inherit_id" ref="executionpm_execution.view_execution_progress_list"/>
+        <field name="arch" type="xml">
+            <field name="state" position="attributes">
+                <attribute name="decoration-warning">state in ('submitted', 'correction_requested')</attribute>
+            </field>
+        </field>
+    </record>
+
+
+</odoo>

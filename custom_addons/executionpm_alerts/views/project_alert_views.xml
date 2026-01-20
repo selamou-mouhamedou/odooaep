@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================================================================
+         PROJECT ALERT VIEWS - Extend Project to Show Alerts
+    ================================================================= -->
+
+    <!-- Extend Project Form to show alert button -->
+    <record id="view_project_alert_form_inherit" model="ir.ui.view">
+        <field name="name">project.project.alert.form.inherit</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="executionpm_core.view_execution_project_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <!-- Add alert button to button box -->
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="alert_button_box">
+                    <button name="action_view_alerts" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-bell"
+                            invisible="not is_execution_project or alert_count == 0">
+                        <div class="o_stat_info">
+                            <field name="alert_count" class="o_stat_value"/>
+                            <span class="o_stat_text">Alerts</span>
+                        </div>
+                    </button>
+                    <button name="action_view_open_alerts" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-exclamation-triangle"
+                            invisible="not is_execution_project or open_alert_count == 0">
+                        <div class="o_stat_info">
+                            <field name="open_alert_count" class="o_stat_value text-warning"/>
+                            <span class="o_stat_text">Open</span>
+                        </div>
+                    </button>
+                    <button name="action_view_critical_alerts" 
+                            type="object" 
+                            class="oe_stat_button btn-danger" 
+                            icon="fa-exclamation-circle"
+                            invisible="not is_execution_project or critical_alert_count == 0">
+                        <div class="o_stat_info">
+                            <field name="critical_alert_count" class="o_stat_value text-danger"/>
+                            <span class="o_stat_text">Critical</span>
+                        </div>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Project Kanban to show alert indicators -->
+    <record id="view_project_alert_kanban_inherit" model="ir.ui.view">
+        <field name="name">project.project.alert.kanban.inherit</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="executionpm_core.view_execution_project_kanban"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/field[@name='color']" position="after">
+                <field name="open_alert_count"/>
+                <field name="critical_alert_count"/>
+                <field name="has_critical_alerts"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Project List to show alert count -->
+    <record id="view_project_alert_list_inherit" model="ir.ui.view">
+        <field name="name">project.project.alert.list.inherit</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="executionpm_core.view_execution_project_tree"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="open_alert_count" string="Open Alerts" optional="show"
+                       decoration-danger="open_alert_count > 0"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
