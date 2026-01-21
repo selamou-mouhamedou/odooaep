@@ -17,4 +17,17 @@
         </field>
     </record>
 
+    <!-- Action for All Tasks -->
+    <record id="action_execution_planning_task_all" model="ir.actions.act_window">
+        <field name="name">All Tasks</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No tasks found
+            </p>
+        </field>
+    </record>
+
 </odoo>

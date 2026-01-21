@@ -8,21 +8,17 @@ class ExecutionPlanningTask(models.Model):
     """
     _inherit = 'execution.planning.task'
 
-    # Validated progress count
-    validated_declaration_count = fields.Integer(
-        string='Validated Declarations',
-        compute='_compute_validated_stats',
-    )
+    # Validated progress count is inherited from executionpm_execution
+    
     pending_declaration_count = fields.Integer(
         string='Pending Declarations',
-        compute='_compute_validated_stats',
+        compute='_compute_pending_stats',
     )
 
     @api.depends('progress_declaration_ids.state')
-    def _compute_validated_stats(self):
+    def _compute_pending_stats(self):
         for task in self:
             declarations = task.progress_declaration_ids
-            task.validated_declaration_count = len(declarations.filtered(lambda d: d.state == 'validated'))
             task.pending_declaration_count = len(declarations.filtered(
                 lambda d: d.state in ('submitted', 'under_review')
             ))
