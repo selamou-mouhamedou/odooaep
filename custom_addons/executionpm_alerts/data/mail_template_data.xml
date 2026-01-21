@@ -7,7 +7,7 @@
         <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
         <field name="email_to">{{ object.assigned_to.email if object.assigned_to else '' }}</field>
         <field name="subject">[{{ object.severity.replace('_', ' ').title() }}] {{ object.title }} - {{ object.project_id.name }}</field>
-        <field name="body_html" type="html">
+        <field name="body_html">
 <![CDATA[
 <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
     <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
@@ -41,7 +41,7 @@
         <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
         <field name="email_to">{{ object.assigned_to.email if object.assigned_to else '' }}</field>
         <field name="subject">[REMINDER] {{ object.title }} - {{ object.project_id.name }}</field>
-        <field name="body_html" type="html">
+        <field name="body_html">
 <![CDATA[
 <div style="margin: 0px; padding: 0px; font-family: Arial, sans-serif;">
     <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
@@ -64,5 +64,4 @@
         </field>
         <field name="auto_delete">False</field>
     </record>
-
 </odoo>

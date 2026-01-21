@@ -31,5 +31,4 @@
         <field name="default_due_days">7</field>
         <field name="notify_project_manager">True</field>
     </record>
-
 </odoo>
