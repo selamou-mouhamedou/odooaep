@@ -170,11 +170,15 @@ class ExecutionValidation(models.Model):
 
     def _get_user_role(self, user):
         """Determine user's validation role."""
-        if user.has_group('executionpm_core.group_executionpm_administrator'):
+        if user.has_group('executionpm_core.group_executionpm_admin'):
             return 'Administrator'
-        elif user.has_group('executionpm_core.group_executionpm_manager'):
-            return 'Manager'
-        elif user.has_group('executionpm_core.group_executionpm_validator'):
-            return 'Validator'
+        elif user.has_group('executionpm_core.group_executionpm_pmo'):
+            return 'PMO'
+        elif user.has_group('executionpm_core.group_executionpm_control_office'):
+            return 'Control Office'
+        elif user.has_group('executionpm_core.group_executionpm_authority'):
+            return 'Authority'
+        elif user.has_group('executionpm_core.group_executionpm_contractor'):
+            return 'Contractor'
         else:
             return 'User'

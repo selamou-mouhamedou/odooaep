@@ -4,7 +4,7 @@
               name="Planning"
               parent="executionpm_core.menu_executionpm_root"
               sequence="20"
-              groups="executionpm_core.group_executionpm_user"/>
+              groups="executionpm_core.group_executionpm_base"/>
               
     <menuitem id="menu_execution_planning_list"
               name="Execution Plans"

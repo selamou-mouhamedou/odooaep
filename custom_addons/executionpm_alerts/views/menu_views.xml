@@ -36,7 +36,7 @@
               name="Configuration"
               parent="menu_executionpm_alerts"
               sequence="100"
-              groups="executionpm_core.group_executionpm_manager"/>
+              groups="executionpm_core.group_executionpm_pmo"/>
 
     <menuitem id="menu_execution_alert_config"
               name="Alert Settings"

@@ -26,7 +26,7 @@
                         type="object" 
                         class="btn-warning"
                         invisible="state not in ('submitted', 'under_review')"
-                        groups="executionpm_core.group_executionpm_validator"/>
+                        groups="executionpm_core.group_executionpm_pmo"/>
             </button>
             
             <!-- Add resubmit button for correction_requested state -->

@@ -87,21 +87,21 @@
                             type="object" 
                             class="oe_highlight"
                             invisible="state != 'submitted'"
-                            groups="executionpm_core.group_executionpm_validator"/>
+                            groups="executionpm_core.group_executionpm_pmo"/>
                             
                     <button name="action_validate" 
                             string="Validate" 
                             type="object" 
                             class="oe_highlight"
                             invisible="state != 'under_review'"
-                            groups="executionpm_core.group_executionpm_validator"/>
+                            groups="executionpm_core.group_executionpm_pmo"/>
                             
                     <button name="action_reject" 
                             string="Reject" 
                             type="object" 
                             class="btn-danger"
                             invisible="state not in ('submitted', 'under_review')"
-                            groups="executionpm_core.group_executionpm_validator"/>
+                            groups="executionpm_core.group_executionpm_pmo"/>
                             
                     <button name="action_reset_draft" 
                             string="Reset to Draft" 

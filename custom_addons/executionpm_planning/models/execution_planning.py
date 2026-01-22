@@ -51,6 +51,7 @@ class ExecutionPlanning(models.Model):
         comodel_name='execution.planning.lot',
         inverse_name='planning_id',
         string='Lots / Work Packages',
+        tracking=True,
     )
     task_count = fields.Integer(
         string='Task Count',
@@ -59,7 +60,7 @@ class ExecutionPlanning(models.Model):
     total_physical_weight = fields.Float(
         string='Total Physical Weight (%)',
         compute='_compute_task_stats',
-        store=True,
+        tracking=True,
         help='Sum of all task weights. Must be 100% for approval.',
     )
     

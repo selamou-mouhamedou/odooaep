@@ -354,6 +354,7 @@ Formalizes the validation process with immutable audit trails, separating valida
 custom_addons/
 │
 ├── EXECUTION_PM_DOCUMENTATION.md    ◄── This file
+├── USER_MANAGEMENT_GUIDE.md        ◄── Guide des Rôles et Utilisateurs
 │
 ├── executionpm_core/
 │   ├── __init__.py
@@ -843,3 +844,138 @@ Install modules in this order (dependencies are handled automatically):
 ---
 
 *Execution PM System v18.0.1.0.0 - Complete Documentation*
+
+---
+
+# 📘 FULL USER GUIDE & WORKFLOW MANUAL
+
+This section provides a step-by-step guide on how to use the Execution PM system, including every attribute and its purpose.
+
+## 1. CORE MODULE: Project Setup & Initialization
+
+### Getting Started
+The lifecycle begins in the **Core Module**. This is where projects are defined and categorized.
+
+### Step-by-Step:
+1.  **Navigate to**: `Execution PM > Projects > All Projects`.
+2.  **Create a New Project**:
+    -   **Is Execution Project (Boolean)**: Must be checked to enable the infrastructure-specific features.
+    -   **National Project Code (Read-only)**: Auto-generated upon confirmation. Format: `[TYPE]-[SECTOR]-[YEAR]-[SEQ]`.
+    -   **Project Type (Many2one)**: Select from Water, Energy, Transport, etc. This influences the code generation.
+    -   **Sector (Many2one)**: Define the geographic region (e.g., Dakar, Thiès).
+    -   **Total Budget (Monetary)**: The total approved amount for the project.
+    -   **Primary Funding Source (Many2one)**: Who is paying? (e.g., WB, AFDB, State Budget).
+    -   **Contracting Authority (Partner)**: The owner of the project (e.g., Ministry of Water).
+    -   **Main Contractor (Partner)**: The company performing the work.
+3.  **Confirm the Project**: Click **"Set to Planned"**. The project state moves from `Draft` to `Planned`.
+
+### Attributes Reference:
+-   **Execution Progress (%)**: Calculated automatically based on weighted validated tasks.
+-   **Physical Progress (%)**: Manual estimate of actual physical work done.
+-   **Financial Progress (%)**: Spent Amount / Total Budget.
+-   **State Reasoning**: Audit field capturing why a project was suspended or moved to "At Risk".
+
+---
+
+## 2. PLANNING MODULE: The Master Schedule
+
+### Getting Started
+Before work can start, a contractor must submit a detailed planning.
+
+### Step-by-Step:
+1.  **Navigate to**: `Execution PM > Planning > Execution Plans`.
+2.  **Create a Planning Document**:
+    -   Link it to an active `Planned` project.
+3.  **Build the Hierarchy**:
+    -   **Lots**: Group tasks into work packages (e.g., "Lot 1: Earthworks").
+    -   **Tasks**: Create granular activities.
+    -   **Physical Weight (Float)**: **CRITICAL**. Each task must have a weight (e.g., 5.0). The sum of all task weights in the planning must equal exactly **100.00%**.
+    -   **Planned Dates**: Start and end dates for each task.
+4.  **Submission**: The Contractor clicks **"Submit"**.
+5.  **Review**: The PMO/Manager reviews the planning.
+    -   **Approve**: Project state moves to `Running`. Execution can now begin.
+    -   **Reject**: Planning goes back to `Draft` for corrections.
+
+### Attributes Reference:
+-   **Total Physical Weight**: Live sum of all task weights. Must be 100 for submission.
+-   **Planning Dates**: Start and end dates derived from the earliest and latest tasks.
+
+---
+
+## 3. EXECUTION MODULE: Declaring Progress
+
+### Getting Started
+Once the project is `Running`, the Contractor declares progress as work is completed.
+
+### Step-by-Step:
+1.  **Navigate to**: `Execution PM > Execution > Progress Declarations`.
+2.  **Declare Progress**:
+    -   **Task (Many2one)**: Select an approved task.
+    -   **Declared Percentage (Float)**: Cumulative percentage (e.g., 30% if 30% of that task is done).
+    -   **Previous Percentage (Computed)**: Last validated percentage.
+    -   **Incremental Percentage (Computed)**: Difference between Declared and Previous.
+    -   **Proof Attachments (Many2many)**: **MANDATORY**. You must upload photos or signed PVs to prove the work.
+    -   **Description (Text)**: Detail what was achieved.
+3.  **Submit**: Click **"Submit for Review"**. State moves to `Submitted`.
+
+### Attributes Reference:
+-   **Quantity Executed**: Physical metric (e.g., "500" for 500 meters).
+-   **Quantity Unit**: Measurement unit (e.g., "M", "M3").
+
+---
+
+## 4. VALIDATION MODULE: Audit & Verification
+
+### Getting Started
+The Validator (PMO/Bureau of Control) ensures the declarations are truthful.
+
+### Step-by-Step:
+1.  **Navigate to**: `Execution PM > Execution > To Review`.
+2.  **Open a Declaration**:
+    -   Review the proof documents and description.
+3.  **Execute Decision**:
+    -   **Validate**:
+        -   Updates the task's `Actual Progress`.
+        -   Recalculates Project `Overall Progress`.
+        -   Creates an **Immutable Audit Record**.
+    -   **Request Correction**: Return to Contractor with a comment.
+    -   **Reject**: Marks as invalid.
+
+### Attributes Reference:
+-   **Validation Hash (Read-only)**: A unique SHA-256 integrity hash for the record.
+-   **Snapshot Fields**: Captures exactly what the percentages were at the time of validation.
+
+---
+
+## 5. ALERTS & MONITORING
+
+### How it Works
+The system automatically runs background checks (Cron jobs) every night.
+
+### Alert Types:
+-   **Task Delay**: Triggered if a task's end date has passed but progress < 100%.
+-   **Inactivity**: Triggered if a `Running` project has no validated progress for X days.
+-   **Inconsistency**: Triggered if there is a major gap between Planned vs Actual progress.
+
+### Managing Alerts:
+1.  **Acknowledge**: Accept that the issue has been noted.
+2.  **Start Progress**: Mark as being worked on.
+3.  **Resolve**: Close the alert after fixing the underlying issue.
+
+---
+
+## 6. DASHBOARDS & KPI SUMMARY
+
+### Views Available:
+-   **Project Dashboard**: Kanban view of all projects with color-coded alerts (Red for High Risk).
+-   **Contractor Dashboard**: Focuses on tasks to declare and pending corrections.
+-   **PMO Dashboard**: Focuses on items awaiting validation and system-wide delays.
+
+### Key Metrics:
+-   **Project Health**: Based on progress vs. elapsed time.
+-   **Validation Accuracy**: Tracking of how many declarations are rejected vs validated.
+
+---
+
+*End of User Guide - Execution PM System*
+

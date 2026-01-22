@@ -66,6 +66,6 @@
               parent="menu_executionpm_dashboard_root"
               action="action_authority_dashboard"
               sequence="10"
-              groups="executionpm_core.group_executionpm_manager"/>
+              groups="executionpm_core.group_executionpm_pmo"/>
 
 </odoo>

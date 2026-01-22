@@ -68,15 +68,13 @@
                             string="Approve Planning" 
                             type="object" 
                             class="oe_highlight"
-                            invisible="state != 'submitted'"
-                            groups="executionpm_core.group_executionpm_manager"/>
+                            invisible="state != 'submitted'"/>
                             
                     <button name="action_reject" 
                             string="Reject" 
                             type="object" 
                             class="btn-danger"
-                            invisible="state != 'submitted'"
-                            groups="executionpm_core.group_executionpm_manager"/>
+                            invisible="state != 'submitted'"/>
                             
                     <button name="action_reset_draft" 
                             string="Reset to Draft" 
@@ -107,14 +105,14 @@
                     </div>
 
                     <notebook>
-                        <page string="Planning Details">
+                        <page string="Lots / Work Packages">
                             <field name="lot_ids" mode="list" readonly="state != 'draft'">
-                                <list editable="bottom">
+                                <list>
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
                                     <field name="start_date"/>
                                     <field name="end_date"/>
-                                    <!-- Nested many2many showing simplified task view -->
+                                    <field name="task_ids" widget="many2many_tags" string="Tasks" optional="show"/>
                                 </list>
                                 <form>
                                     <group>

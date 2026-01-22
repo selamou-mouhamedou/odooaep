@@ -1,29 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
 
-    <!-- Users can only modify their own draft/rejected declarations -->
-    <record id="rule_execution_progress_user_own" model="ir.rule">
-        <field name="name">User: Own Declarations Only for Modification</field>
+    <!-- Validated progress declarations are read-only for everyone except admins -->
+    <record id="rule_execution_progress_readonly_validated" model="ir.rule">
+        <field name="name">Execution Progress: Read-only when Validated</field>
         <field name="model_id" ref="model_execution_progress"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_user'))]"/>
-        <field name="domain_force">['|', ('create_uid', '=', user.id), ('state', 'in', ['validated'])]</field>
+        <field name="domain_force">[('state', '=', 'validated')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
+    </record>
+
+    <!-- Contractor: Can only modify their own draft/rejected declarations -->
+    <record id="rule_execution_progress_contractor_own" model="ir.rule">
+        <field name="name">Contractor: Own Declarations (Draft/Rejected)</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+        <field name="domain_force">[('create_uid', '=', user.id), ('state', 'in', ['draft', 'rejected'])]</field>
         <field name="perm_read" eval="1"/>
         <field name="perm_write" eval="1"/>
         <field name="perm_create" eval="1"/>
         <field name="perm_unlink" eval="0"/>
     </record>
     
-    <!-- Validators can see and modify all declarations -->
-    <record id="rule_execution_progress_validator" model="ir.rule">
-        <field name="name">Validator: All Declarations</field>
+    <!-- PMO/Control Office: Can see all declarations -->
+    <record id="rule_execution_progress_pmo_all" model="ir.rule">
+        <field name="name">PMO: All Declarations</field>
         <field name="model_id" ref="model_execution_progress"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_validator'))]"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="1"/>
         <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="1"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
     </record>
-
 
 </odoo>

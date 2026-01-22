@@ -4,14 +4,14 @@
               name="Execution"
               parent="executionpm_core.menu_executionpm_root"
               sequence="30"
-              groups="executionpm_core.group_executionpm_user"/>
+              groups="executionpm_core.group_executionpm_base"/>
               
     <menuitem id="menu_execution_progress_to_review"
               name="To Review"
               parent="menu_execution_progress_root"
               action="action_execution_progress"
               sequence="10"
-              groups="executionpm_core.group_executionpm_validator"/>
+              groups="executionpm_core.group_executionpm_pmo"/>
 
     <menuitem id="menu_execution_progress_all"
               name="All Declarations"

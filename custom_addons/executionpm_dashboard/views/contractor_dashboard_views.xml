@@ -57,6 +57,6 @@
               parent="menu_executionpm_dashboard_root"
               action="action_contractor_dashboard"
               sequence="30"
-              groups="executionpm_core.group_executionpm_user"/>
+              groups="executionpm_core.group_executionpm_base"/>
 
 </odoo>

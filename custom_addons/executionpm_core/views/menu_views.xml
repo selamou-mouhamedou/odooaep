@@ -11,7 +11,7 @@
               name="Execution PM"
               sequence="45"
               web_icon="executionpm_core,static/description/icon.png"
-              groups="executionpm_core.group_executionpm_user"/>
+              groups="executionpm_core.group_executionpm_base"/>
 
     <!-- ================================================================
          PROJECTS MENU

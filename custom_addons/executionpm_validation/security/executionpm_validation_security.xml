@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
 
     <!-- Validation records are readable by all users but only created by validators -->
     <record id="rule_execution_validation_read_all" model="ir.rule">
         <field name="name">Validation: Read All</field>
         <field name="model_id" ref="model_execution_validation"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_user'))]"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="1"/>
         <field name="perm_write" eval="0"/>
@@ -17,7 +17,7 @@
     <record id="rule_execution_validation_create_validator" model="ir.rule">
         <field name="name">Validation: Create by Validators</field>
         <field name="model_id" ref="model_execution_validation"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_validator'))]"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="1"/>
         <field name="perm_write" eval="0"/>
@@ -30,7 +30,7 @@
     <record id="rule_progress_validator_no_own_declare" model="ir.rule">
         <field name="name">Validator: Cannot validate own declarations</field>
         <field name="model_id" ref="executionpm_execution.model_execution_progress"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_validator'))]"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
         <field name="domain_force">['|', ('create_uid', '!=', user.id), ('state', '=', 'draft')]</field>
         <field name="perm_read" eval="1"/>
         <field name="perm_write" eval="1"/>

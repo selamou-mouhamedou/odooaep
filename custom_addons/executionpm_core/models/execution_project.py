@@ -481,8 +481,7 @@ class ProjectProject(models.Model):
         for project in self:
             if project.execution_progress < 100:
                 raise UserError(
-                    _('Cannot close project with progress less than 100%. '
-                      'Current progress: %.2f%%') % project.execution_progress
+                    _('Cannot close project with progress less than 100%%. Current progress: %.2f%%') % project.execution_progress
                 )
         vals = {
             'execution_state': 'closed',

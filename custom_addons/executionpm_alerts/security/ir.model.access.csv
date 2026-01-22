@@ -1,6 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_execution_alert_user,execution.alert.user,model_execution_alert,executionpm_core.group_executionpm_user,1,0,0,0
-access_execution_alert_manager,execution.alert.manager,model_execution_alert,executionpm_core.group_executionpm_manager,1,1,1,0
+access_execution_alert_base,execution.alert.base,model_execution_alert,executionpm_core.group_executionpm_base,1,0,0,0
+access_execution_alert_pmo,execution.alert.pmo,model_execution_alert,executionpm_core.group_executionpm_pmo,1,1,1,0
 access_execution_alert_admin,execution.alert.admin,model_execution_alert,executionpm_core.group_executionpm_admin,1,1,1,1
-access_execution_alert_config_manager,execution.alert.config.manager,model_execution_alert_config,executionpm_core.group_executionpm_manager,1,1,1,0
+access_execution_alert_config_pmo,execution.alert.config.pmo,model_execution_alert_config,executionpm_core.group_executionpm_pmo,1,1,1,0
 access_execution_alert_config_admin,execution.alert.config.admin,model_execution_alert_config,executionpm_core.group_executionpm_admin,1,1,1,1

@@ -58,6 +58,6 @@
               parent="menu_executionpm_dashboard_root"
               action="action_pmo_dashboard"
               sequence="20"
-              groups="executionpm_core.group_executionpm_validator,executionpm_core.group_executionpm_manager"/>
+              groups="executionpm_core.group_executionpm_pmo,executionpm_core.group_executionpm_pmo"/>
 
 </odoo>

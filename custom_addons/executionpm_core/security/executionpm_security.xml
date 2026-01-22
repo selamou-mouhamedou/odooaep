@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
 
     <!-- ================================================================
          MODULE CATEGORY
@@ -14,35 +14,50 @@
          SECURITY GROUPS
     ================================================================= -->
     
-    <!-- User Group: Basic access to projects -->
-    <record id="group_executionpm_user" model="res.groups">
+    <!-- Base Group: Global read access (implied by all other groups) -->
+    <record id="group_executionpm_base" model="res.groups">
         <field name="name">User</field>
         <field name="category_id" ref="module_category_executionpm"/>
-        <field name="implied_ids" eval="[(4, ref('project.group_project_user'))]"/>
-        <field name="comment">Users can view and edit their own projects and declarations.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
-    <!-- Validator Group: Can validate progress and declarations -->
-    <record id="group_executionpm_validator" model="res.groups">
-        <field name="name">Validator</field>
+    <!-- Authority Group: Read-only access across the board -->
+    <record id="group_executionpm_authority" model="res.groups">
+        <field name="name">Authority (Read-Only)</field>
         <field name="category_id" ref="module_category_executionpm"/>
-        <field name="implied_ids" eval="[(4, ref('group_executionpm_user'))]"/>
-        <field name="comment">Validators can approve progress declarations and validate work.</field>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
+        <field name="comment">Authorities have global read-only access to all projects and dashboards.</field>
     </record>
 
-    <!-- Manager Group: Full project management access -->
-    <record id="group_executionpm_manager" model="res.groups">
-        <field name="name">Manager</field>
+    <!-- Contractor Group: Can declare execution progress -->
+    <record id="group_executionpm_contractor" model="res.groups">
+        <field name="name">Contractor (Declare)</field>
         <field name="category_id" ref="module_category_executionpm"/>
-        <field name="implied_ids" eval="[(4, ref('group_executionpm_validator'))]"/>
-        <field name="comment">Managers have full access to projects and can change states.</field>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
+        <field name="comment">Contractors can declare execution progress for their assigned tasks.</field>
+    </record>
+
+    <!-- Control Office Group: Can review declarations -->
+    <record id="group_executionpm_control_office" model="res.groups">
+        <field name="name">Control Office (Review)</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
+        <field name="comment">Control Office can review and submit comments on progress declarations.</field>
+    </record>
+
+    <!-- PMO Group: Can validate declarations -->
+    <record id="group_executionpm_pmo" model="res.groups">
+        <field name="name">PMO (Validate)</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_control_office'))]"/>
+        <field name="comment">PMO can validate progress declarations and manage project planning.</field>
     </record>
 
     <!-- Administrator Group: Full system access -->
     <record id="group_executionpm_admin" model="res.groups">
         <field name="name">Administrator</field>
         <field name="category_id" ref="module_category_executionpm"/>
-        <field name="implied_ids" eval="[(4, ref('group_executionpm_manager'))]"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_pmo')), (4, ref('group_executionpm_authority'))]"/>
         <field name="comment">Administrators can manage all settings and configurations.</field>
     </record>
 
@@ -59,7 +74,7 @@
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
-        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
     <!-- Admins can manage project types -->
@@ -87,7 +102,7 @@
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
-        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
     <!-- Admins can manage sectors -->
@@ -115,7 +130,7 @@
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
-        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
     <!-- Admins can manage funding sources -->
@@ -149,7 +164,7 @@
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="False"/>
-        <field name="groups" eval="[(4, ref('group_executionpm_user'))]"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
     <!-- Managers can see all projects -->
@@ -161,8 +176,36 @@
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
-        <field name="groups" eval="[(4, ref('group_executionpm_manager'))]"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_pmo'))]"/>
     </record>
 
+
+    <!-- ================================================================
+         RECORD RULES - Workflow Restrictions
+    ================================================================= -->
+
+    <!-- Authority Group: Enforcement of Global Read-Only -->
+    <record id="rule_authority_readonly_all" model="ir.rule">
+        <field name="name">Authority: Global Read-Only Enforcement</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- Contractor: Can only see their own projects -->
+    <record id="rule_project_contractor_own" model="ir.rule">
+        <field name="name">Contractor: Own Projects Only</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[('execution_contractor_id.user_ids', 'in', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_contractor'))]"/>
+    </record>
 
 </odoo>
