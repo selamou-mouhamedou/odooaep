@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class ExecutionProgress(models.Model):
@@ -69,6 +69,31 @@ class ExecutionProgress(models.Model):
         for record in self:
             last = record.validation_ids.sorted('validation_datetime', reverse=True)[:1]
             record.last_validation_id = last.id if last else False
+
+    @api.constrains('validated_date', 'execution_date')
+    def _check_validated_date(self):
+        for record in self:
+            if not record.validated_date:
+                continue
+            
+            # Rule 1: Validation date must be >= execution declaration date
+            if record.execution_date and record.validated_date < record.execution_date:
+                raise ValidationError(_(
+                    "The validation date (%s) cannot be before the execution date (%s)."
+                ) % (record.validated_date, record.execution_date))
+            
+            # Rule 2: Validation date cannot be in the future
+            if record.validated_date > fields.Date.today():
+                raise ValidationError(_(
+                    "The validation date (%s) cannot be in the future."
+                ) % record.validated_date)
+            
+            # Rule 3: Validation date must be >= project start date
+            project = record.project_id
+            if project and project.execution_planned_start and record.validated_date < project.execution_planned_start:
+                raise ValidationError(_(
+                    "The validation date (%s) cannot be before the project planned start date (%s)."
+                ) % (record.validated_date, project.execution_planned_start))
 
     # -------------------------------------------------------------------------
     # FORMAL VALIDATION ACTIONS (Override from execution module)
@@ -253,7 +278,23 @@ class ExecutionProgress(models.Model):
                 for task in tasks
             )
             
-            project.write({
+            project_vals = {
                 'execution_progress': weighted_progress,
                 'execution_physical_progress': weighted_progress,
-            })
+            }
+
+            # Automation Rule: Set Actual Start at first validated execution
+            validated_declarations = self.env['execution.progress'].search([
+                ('project_id', '=', project.id),
+                ('state', '=', 'validated')
+            ])
+            if validated_declarations:
+                # Set start date to the earliest execution date of validated declarations
+                if not project.execution_actual_start:
+                    project_vals['execution_actual_start'] = min(validated_declarations.mapped('execution_date'))
+                
+                # Automation Rule: Set Actual End when all tasks reach 100%
+                if weighted_progress >= 99.99: # Account for float precision
+                    project_vals['execution_actual_end'] = max(validated_declarations.mapped('execution_date'))
+            
+            project.write(project_vals)

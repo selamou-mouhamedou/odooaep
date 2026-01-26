@@ -62,6 +62,20 @@ class ExecutionAlertConfig(models.Model):
     )
 
     # -------------------------------------------------------------------------
+    # NOT STARTED ALERT SETTINGS
+    # -------------------------------------------------------------------------
+    not_started_alert_enabled = fields.Boolean(
+        string='Enable Not Started Alerts',
+        default=True,
+        help='Generate alerts when tasks have not started after their planned start date.',
+    )
+    not_started_threshold_days = fields.Integer(
+        string='Not Started Threshold (Days)',
+        default=3,
+        help='Minimum days after planned start before generating an alert.',
+    )
+
+    # -------------------------------------------------------------------------
     # INACTIVITY ALERT SETTINGS
     # -------------------------------------------------------------------------
     inactivity_alert_enabled = fields.Boolean(

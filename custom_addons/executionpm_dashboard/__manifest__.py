@@ -11,6 +11,7 @@
     """,
     'author': 'Antigravity',
     'depends': [
+        'web',
         'board',
         'executionpm_core',
         'executionpm_execution',

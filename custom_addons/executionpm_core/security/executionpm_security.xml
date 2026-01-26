@@ -50,6 +50,7 @@
         <field name="name">PMO (Validate)</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('group_executionpm_control_office'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         <field name="comment">PMO can validate progress declarations and manage project planning.</field>
     </record>
 
@@ -58,6 +59,7 @@
         <field name="name">Administrator</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('group_executionpm_pmo')), (4, ref('group_executionpm_authority'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         <field name="comment">Administrators can manage all settings and configurations.</field>
     </record>
 

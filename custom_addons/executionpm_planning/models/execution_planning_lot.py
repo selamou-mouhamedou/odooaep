@@ -27,14 +27,43 @@ class ExecutionPlanningLot(models.Model):
         string='Tasks',
     )
     
-    # Aggregates
-    start_date = fields.Date(compute='_compute_lot_dates', store=True)
-    end_date = fields.Date(compute='_compute_lot_dates', store=True)
+    # Aggregates / Boundaries
+    start_date = fields.Date(string='Start Date', required=True, tracking=True)
+    end_date = fields.Date(string='End Date', required=True, tracking=True)
 
-    @api.depends('task_ids.date_start', 'task_ids.date_end')
-    def _compute_lot_dates(self):
-        for record in self:
-            starts = [d for d in record.task_ids.mapped('date_start') if d]
-            ends = [d for d in record.task_ids.mapped('date_end') if d]
-            record.start_date = min(starts) if starts else False
-            record.end_date = max(ends) if ends else False
+    @api.constrains('start_date', 'end_date', 'planning_id')
+    def _check_lot_dates(self):
+        for lot in self:
+            if not lot.start_date or not lot.end_date:
+                continue
+                
+            # Rule 1: Start < End
+            if lot.start_date > lot.end_date:
+                raise ValidationError(_(
+                    "Lot '%s': Planned start date (%s) must be before planned end date (%s)."
+                ) % (lot.name, lot.start_date, lot.end_date))
+                
+            project = lot.planning_id.project_id
+            if project:
+                # Rule 5: Lot dates must be inside project dates
+                if project.execution_planned_start and lot.start_date < project.execution_planned_start:
+                    raise ValidationError(_(
+                        "Lot '%s': Start date (%s) cannot be before project planned start date (%s)."
+                    ) % (lot.name, lot.start_date, project.execution_planned_start))
+                    
+                if project.execution_planned_end and lot.end_date > project.execution_planned_end:
+                    raise ValidationError(_(
+                        "Lot '%s': End date (%s) cannot be after project planned end date (%s)."
+                    ) % (lot.name, lot.end_date, project.execution_planned_end))
+
+            # Rule 4 (Inverse): All tasks must be within lot dates
+            for task in lot.task_ids:
+                if task.date_start and task.date_start < lot.start_date:
+                    raise ValidationError(_(
+                        "Lot '%s': Start date (%s) would exclude task '%s' which starts on %s."
+                    ) % (lot.name, lot.start_date, task.name, task.date_start))
+                
+                if task.date_end and task.date_end > lot.end_date:
+                    raise ValidationError(_(
+                        "Lot '%s': End date (%s) would exclude task '%s' which ends on %s."
+                    ) % (lot.name, lot.end_date, task.name, task.date_end))

@@ -116,8 +116,14 @@
                                 </list>
                                 <form>
                                     <group>
-                                        <field name="name"/>
-                                        <field name="sequence"/>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="sequence"/>
+                                        </group>
+                                        <group>
+                                            <field name="start_date"/>
+                                            <field name="end_date"/>
+                                        </group>
                                     </group>
                                     <field name="task_ids">
                                         <list editable="bottom" decoration-info="parent_task_id != False">

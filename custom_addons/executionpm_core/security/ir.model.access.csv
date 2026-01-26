@@ -8,3 +8,4 @@ access_execution_funding_source_admin,execution.funding.source.admin,model_execu
 access_project_project_base,project.project.base,project.model_project_project,group_executionpm_base,1,0,0,0
 access_project_project_pmo,project.project.pmo,project.model_project_project,group_executionpm_pmo,1,1,1,1
 access_project_project_admin,project.project.admin,project.model_project_project,group_executionpm_admin,1,1,1,1
+access_execution_project_state_wizard_base,execution.project.state.wizard,model_execution_project_state_wizard,group_executionpm_base,1,1,1,1

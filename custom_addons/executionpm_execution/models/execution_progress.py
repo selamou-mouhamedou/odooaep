@@ -112,6 +112,19 @@ class ExecutionProgress(models.Model):
         tracking=True,
     )
     
+    # Delay Tracking
+    is_delayed = fields.Boolean(
+        string='Is Delayed',
+        compute='_compute_delay',
+        store=True,
+        help='True if execution date is after planned end date.',
+    )
+    delay_days = fields.Integer(
+        string='Delay Days',
+        compute='_compute_delay',
+        store=True,
+    )
+    
     # Validation Info
     validated_by = fields.Many2one(
         comodel_name='res.users',
@@ -132,6 +145,20 @@ class ExecutionProgress(models.Model):
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
     # -------------------------------------------------------------------------
+    @api.depends('execution_date', 'task_id.date_end')
+    def _compute_delay(self):
+        for record in self:
+            if record.execution_date and record.task_id.date_end:
+                if record.execution_date > record.task_id.date_end:
+                    delta = record.execution_date - record.task_id.date_end
+                    record.is_delayed = True
+                    record.delay_days = delta.days
+                else:
+                    record.is_delayed = False
+                    record.delay_days = 0
+            else:
+                record.is_delayed = False
+                record.delay_days = 0
     @api.depends('task_id')
     def _compute_previous_percentage(self):
         """Get the last validated percentage for this task."""
@@ -169,6 +196,45 @@ class ExecutionProgress(models.Model):
                 raise ValidationError(_(
                     'Declared percentage (%.2f%%) cannot be less than previous validated progress (%.2f%%).'
                 ) % (record.declared_percentage, record.previous_percentage))
+            
+            # Rule: 100% progress cannot be declared before planned end date
+            if (abs(record.declared_percentage - 100.0) < 0.01 and 
+                    record.task_id.date_end and record.execution_date < record.task_id.date_end):
+                raise ValidationError(_(
+                    "You cannot declare 100%% completion for task '%s' before its planned end date (%s). "
+                    "Current execution date: %s"
+                ) % (record.task_id.name, record.task_id.date_end, record.execution_date))
+
+    @api.constrains('execution_date', 'task_id')
+    def _check_execution_date(self):
+        for record in self:
+            if not record.execution_date:
+                continue
+
+            # Rule 1: Cannot be in the future
+            if record.execution_date > fields.Date.today():
+                raise ValidationError(_(
+                    "Execution date (%s) cannot be in the future."
+                ) % record.execution_date)
+
+            # Rule 2: Must be >= task planned start date
+            if record.task_id and record.task_id.date_start and record.execution_date < record.task_id.date_start:
+                raise ValidationError(_(
+                    "Execution date (%s) cannot be before the task planned start date (%s)."
+                ) % (record.execution_date, record.task_id.date_start))
+
+            # Rule 3: Must be <= task planned end date
+            if record.task_id and record.task_id.date_end and record.execution_date > record.task_id.date_end:
+                raise ValidationError(_(
+                    "Execution date (%s) cannot be after the task planned end date (%s)."
+                ) % (record.execution_date, record.task_id.date_end))
+
+            # Rule 4: Must be >= project start date
+            project = record.project_id
+            if project and project.execution_planned_start and record.execution_date < project.execution_planned_start:
+                raise ValidationError(_(
+                    "Execution date (%s) cannot be before the project planned start date (%s)."
+                ) % (record.execution_date, project.execution_planned_start))
 
     @api.constrains('attachment_ids', 'state')
     def _check_attachments_on_submit(self):

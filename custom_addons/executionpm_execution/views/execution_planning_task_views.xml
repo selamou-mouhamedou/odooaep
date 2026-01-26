@@ -13,6 +13,10 @@
                        decoration-muted="progress_status == 'not_started'"
                        decoration-primary="progress_status == 'in_progress'"
                        decoration-success="progress_status == 'completed'"/>
+                <field name="is_delayed" invisible="1"/>
+                <field name="max_delay_days" string="Delay" 
+                       decoration-danger="is_delayed" 
+                       invisible="not is_delayed"/>
             </field>
         </field>
     </record>

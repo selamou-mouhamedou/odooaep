@@ -61,8 +61,40 @@ class ExecutionPlanningTask(models.Model):
             else:
                 record.duration = 0
 
-    @api.constrains('date_start', 'date_end')
-    def _check_dates(self):
-        for record in self:
-            if record.date_start > record.date_end:
-                raise ValidationError(_("End date cannot be earlier than start date for task: %s") % record.name)
+    @api.constrains('date_start', 'date_end', 'lot_id')
+    def _check_task_dates(self):
+        for task in self:
+            if not task.date_start or not task.date_end:
+                continue
+
+            # Rule 1: Start < End
+            if task.date_start > task.date_end:
+                raise ValidationError(_(
+                    "Task '%s': Planned start date (%s) must be before planned end date (%s)."
+                ) % (task.name, task.date_start, task.date_end))
+
+            project = task.planning_id.project_id
+            if project:
+                # Rule 2: Start cannot be before project start
+                if project.execution_planned_start and task.date_start < project.execution_planned_start:
+                    raise ValidationError(_(
+                        "Task '%s': Start date (%s) cannot be before project planned start date (%s)."
+                    ) % (task.name, task.date_start, project.execution_planned_start))
+                
+                # Rule 3: End cannot be after project end
+                if project.execution_planned_end and task.date_end > project.execution_planned_end:
+                    raise ValidationError(_(
+                        "Task '%s': End date (%s) cannot be after project planned end date (%s)."
+                    ) % (task.name, task.date_end, project.execution_planned_end))
+
+            # Rule 4: Task inside parent lot
+            if task.lot_id:
+                if task.lot_id.start_date and task.date_start < task.lot_id.start_date:
+                    raise ValidationError(_(
+                        "Task '%s': Start date (%s) cannot be before lot start date (%s)."
+                    ) % (task.name, task.date_start, task.lot_id.start_date))
+                
+                if task.lot_id.end_date and task.date_end > task.lot_id.end_date:
+                    raise ValidationError(_(
+                        "Task '%s': End date (%s) cannot be after lot end date (%s)."
+                    ) % (task.name, task.date_end, task.lot_id.end_date))

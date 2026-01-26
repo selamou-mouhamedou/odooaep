@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class ExecutionValidation(models.Model):
@@ -115,6 +115,36 @@ class ExecutionValidation(models.Model):
         readonly=True,
         help='SHA-256 hash of validation data for integrity verification',
     )
+
+    # -------------------------------------------------------------------------
+    # CONSTRAINTS
+    # -------------------------------------------------------------------------
+    @api.constrains('validation_datetime', 'progress_id')
+    def _check_validation_dates(self):
+        for record in self:
+            if not record.validation_datetime:
+                continue
+                
+            val_date = record.validation_datetime.date()
+            
+            # Rule 1: Validation date must be >= execution declaration date
+            if record.progress_id.execution_date and val_date < record.progress_id.execution_date:
+                raise ValidationError(_(
+                    "Validation date (%s) cannot be before the execution declaration date (%s)."
+                ) % (val_date, record.progress_id.execution_date))
+            
+            # Rule 2: Validation date cannot be in the future
+            if val_date > fields.Date.today():
+                raise ValidationError(_(
+                    "Validation date (%s) cannot be in the future."
+                ) % val_date)
+            
+            # Rule 3: Validation date must be >= project start date
+            project = record.project_id
+            if project and project.execution_planned_start and val_date < project.execution_planned_start:
+                raise ValidationError(_(
+                    "Validation date (%s) cannot be before the project planned start date (%s)."
+                ) % (val_date, project.execution_planned_start))
 
     @api.depends('progress_id', 'decision', 'validation_datetime')
     def _compute_display_name(self):

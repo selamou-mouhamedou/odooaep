@@ -57,6 +57,10 @@
                 <field name="declared_percentage"/>
                 <field name="incremental_percentage"/>
                 <field name="attachment_count" string="Proofs"/>
+                <field name="is_delayed" invisible="1"/>
+                <field name="delay_days" string="Delay" 
+                       decoration-warning="is_delayed" 
+                       invisible="not is_delayed"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'submitted'"
@@ -127,6 +131,14 @@
                     <div class="alert alert-danger" name="rejection_alert" role="alert" 
                          invisible="not rejection_reason or state != 'rejected'">
                         <strong>Rejected: </strong> <field name="rejection_reason" readonly="1"/>
+                    </div>
+
+                    <!-- Delay Alert -->
+                    <div class="alert alert-warning" name="delay_alert" role="alert" 
+                         invisible="not is_delayed">
+                        <i class="fa fa-clock-o"/> 
+                        <strong>Delay Detected: </strong> 
+                        This work was executed <field name="delay_days" readonly="1"/> days after the planned end date.
                     </div>
                     
                     <group>

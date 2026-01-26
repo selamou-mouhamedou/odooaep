@@ -39,6 +39,28 @@ class ExecutionPlanningTask(models.Model):
         compute='_compute_progress_status',
         store=True,
     )
+    
+    # Delay Info
+    is_delayed = fields.Boolean(
+        string='Is Delayed',
+        compute='_compute_task_delay',
+        store=True,
+        help='True if any validated or submitted declaration for this task is delayed.',
+    )
+    max_delay_days = fields.Integer(
+        string='Max Delay (Days)',
+        compute='_compute_task_delay',
+        store=True,
+    )
+
+    @api.depends('progress_declaration_ids.is_delayed', 'progress_declaration_ids.delay_days', 'progress_declaration_ids.state')
+    def _compute_task_delay(self):
+        for task in self:
+            # We consider a task delayed if any of its progress declarations (submitted or validated) are delayed
+            declarations = task.progress_declaration_ids.filtered(lambda d: d.state in ('submitted', 'validated'))
+            delayed_decls = declarations.filtered(lambda d: d.is_delayed)
+            task.is_delayed = bool(delayed_decls)
+            task.max_delay_days = max(delayed_decls.mapped('delay_days')) if delayed_decls else 0
 
     @api.depends('progress_declaration_ids')
     def _compute_progress_declaration_count(self):

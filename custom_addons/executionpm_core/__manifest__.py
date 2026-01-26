@@ -40,6 +40,7 @@ This is the foundation module for the Execution PM suite.
         'data/execution_sector_data.xml',
         'data/ir_sequence_data.xml',
         # Views
+        'wizards/execution_project_state_wizard_views.xml',
         'views/execution_project_views.xml',
         'views/execution_project_type_views.xml',
         'views/execution_sector_views.xml',
