@@ -143,6 +143,11 @@ class ExecutionPlanning(models.Model):
         if self.state != 'submitted':
             raise ValidationError(_("Only submitted planning can be approved."))
             
+        # Synchronize tasks to Odoo Project Tasks FIRST
+        # We must do this before setting state to 'approved' because
+        # once approved, record rules make planning tasks read-only for PMO.
+        self._sync_to_project_tasks()
+
         self.write({
             'state': 'approved',
             'approved_by': self.env.user.id,
@@ -150,14 +155,12 @@ class ExecutionPlanning(models.Model):
             'rejection_reason': False
         })
         
-        # Synchronize tasks to Odoo Project Tasks
-        self._sync_to_project_tasks()
-        
         # Link this planning to the project as the master schedule
         self.project_id.message_post(
             body=_("New Execution Planning approved: %s") % self.name,
             message_type='notification'
         )
+
 
     def action_reject(self):
         return {

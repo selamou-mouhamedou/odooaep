@@ -20,7 +20,8 @@
     <menuitem id="menu_executionpm_projects"
               name="Projects"
               parent="menu_executionpm_root"
-              sequence="10"/>
+              sequence="10"
+              groups="executionpm_core.group_executionpm_control_office,executionpm_core.group_executionpm_authority"/>
 
     <menuitem id="menu_executionpm_dashboard_root"
               name="Dashboards"

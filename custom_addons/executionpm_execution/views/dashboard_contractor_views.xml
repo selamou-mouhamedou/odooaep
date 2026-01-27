@@ -125,7 +125,7 @@
     Valid states are: draft, submitted, under_review, validated, rejected
     ======================================================================== -->
     <record id="action_contractor_rejected_declarations" model="ir.actions.act_window">
-        <field name="name">Rejected Reports (Need Correction)</field>
+        <field name="name">Reports</field>
         <field name="res_model">execution.progress</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[
@@ -160,7 +160,7 @@
                         <action name="%(action_contractor_delayed_tasks)d" string="Delayed Work Packages (Overdue)"/>
                     </column>
                     <column>
-                        <action name="%(action_contractor_rejected_declarations)d" string="Rejected Reports (Needs Correction)"/>
+                        <action name="%(action_contractor_rejected_declarations)d" string="Reports "/>
                     </column>
                 </board>
             </form>

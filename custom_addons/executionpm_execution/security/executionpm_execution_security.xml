@@ -20,17 +20,13 @@
          1. PROGRESS DECLARATION - RECORD RULES
          ========================================================================== -->
 
-    <!-- 1.1 Progress: Validated records are read-only for everyone except admin -->
-    <record id="rule_execution_progress_readonly_validated" model="ir.rule">
-        <field name="name">Progress: Read-Only When Validated</field>
-        <field name="model_id" ref="model_execution_progress"/>
-        <field name="domain_force">[('state', '=', 'validated')]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
-    </record>
+    <!-- ==========================================================================
+         1. PROGRESS DECLARATION - RECORD RULES
+         ========================================================================== -->
+
+    <!-- DELETE OLD RULE: This rule was granting global read access to all validated records, 
+         breaking the contractor restriction. We remove it. -->
+    <delete model="ir.rule" search="[('name', '=', 'Progress: Read-Only When Validated')]"/>
 
     <!-- 1.2 Progress: Contractor - View and Edit Own Declarations Only (Draft/Rejected) -->
     <record id="rule_execution_progress_contractor_own_edit" model="ir.rule">

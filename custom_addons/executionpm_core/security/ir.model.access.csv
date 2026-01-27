@@ -15,7 +15,7 @@ access_project_task_base,project.task.base,project.model_project_task,group_exec
 access_project_task_contractor,project.task.contractor,project.model_project_task,group_executionpm_contractor,1,0,0,0
 access_project_task_authority,project.task.authority,project.model_project_task,group_executionpm_authority,1,0,0,0
 access_project_task_control,project.task.control,project.model_project_task,group_executionpm_control_office,1,0,0,0
-access_project_task_pmo,project.task.pmo,project.model_project_task,group_executionpm_pmo,1,1,0,0
+access_project_task_pmo,project.task.pmo,project.model_project_task,group_executionpm_pmo,1,1,1,0
 access_project_task_admin,project.task.admin,project.model_project_task,group_executionpm_admin,1,1,1,1
 access_execution_attachment_base,execution.attachment.base,base.model_ir_attachment,group_executionpm_base,1,0,1,0
 access_execution_attachment_contractor,execution.attachment.contractor,base.model_ir_attachment,group_executionpm_contractor,1,1,1,1
