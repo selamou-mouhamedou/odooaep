@@ -1,9 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ==========================================================================
+         EXECUTION MODULE - RECORD RULES FOR PROGRESS DECLARATIONS
+         =========================================================================
+         
+         Progress Declaration Rules:
+         - Contractors: Can create/edit only their own draft/rejected declarations
+         - PMO: Can validate/reject any submitted declaration
+         - Control Office: Can view all declarations (read-only)
+         - Authority: Can view all declarations for monitoring (read-only)
+         - Administrator: Full access to all declarations
+         
+         State-Based Restrictions:
+         - Validated declarations are immutable (read-only for all except admin)
+         - Only draft/rejected declarations can be modified
+         ========================================================================== -->
 
-    <!-- Validated progress declarations are read-only for everyone except admins -->
+    <!-- ==========================================================================
+         1. PROGRESS DECLARATION - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 1.1 Progress: Validated records are read-only for everyone except admin -->
     <record id="rule_execution_progress_readonly_validated" model="ir.rule">
-        <field name="name">Execution Progress: Read-only when Validated</field>
+        <field name="name">Progress: Read-Only When Validated</field>
         <field name="model_id" ref="model_execution_progress"/>
         <field name="domain_force">[('state', '=', 'validated')]</field>
         <field name="perm_read" eval="True"/>
@@ -13,34 +32,165 @@
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
     </record>
 
-    <!-- Contractor: Can only modify their own draft/rejected declarations -->
-    <record id="rule_execution_progress_contractor_own" model="ir.rule">
-        <field name="name">Contractor: Own Declarations (Draft/Rejected)</field>
+    <!-- 1.2 Progress: Contractor - View and Edit Own Declarations Only (Draft/Rejected) -->
+    <record id="rule_execution_progress_contractor_own_edit" model="ir.rule">
+        <field name="name">Contractor: Own Declarations (Draft/Rejected - Edit)</field>
         <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[
+            ('create_uid', '=', user.id),
+            ('state', 'in', ['draft', 'rejected'])
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
-        <field name="domain_force">[('create_uid', '=', user.id), ('state', 'in', ['draft', 'rejected'])]</field>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="0"/>
-    </record>
-    
-    <!-- PMO/Control Office: Can see all declarations -->
-    <record id="rule_execution_progress_pmo_all" model="ir.rule">
-        <field name="name">PMO: All Declarations</field>
-        <field name="model_id" ref="model_execution_progress"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="0"/>
-        <field name="perm_unlink" eval="0"/>
     </record>
 
-    <record id="rule_execution_progress_admin_all" model="ir.rule">
-        <field name="name">Execution PM Admin: Progress Full Access</field>
+    <!-- 1.3 Progress: Contractor - View Own Declarations (All States) -->
+    <record id="rule_execution_progress_contractor_own_read" model="ir.rule">
+        <field name="name">Contractor: View Own Declarations</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[
+            '|',
+            ('create_uid', '=', user.id),
+            ('task_id.project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 1.4 Progress: Authority - View All Declarations (Read-Only Monitoring) -->
+    <record id="rule_execution_progress_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Declarations (Read-Only)</field>
         <field name="model_id" ref="model_execution_progress"/>
         <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 1.5 Progress: Control Office - View All Declarations (Read-Only, Commenting via Chatter) -->
+    <record id="rule_execution_progress_control_office_readonly" model="ir.rule">
+        <field name="name">Control Office: View All Declarations (Read-Only)</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 1.6 Progress: PMO - View All, Validate/Reject Submitted Declarations -->
+    <record id="rule_execution_progress_pmo_validate" model="ir.rule">
+        <field name="name">PMO: Validate/Reject Declarations (State Changes)</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[('state', 'in', ['submitted', 'under_review'])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 1.7 Progress: PMO - View All Declarations -->
+    <record id="rule_execution_progress_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Declarations</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 1.8 Progress: Administrator - Full Access -->
+    <record id="rule_execution_progress_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Progress Access</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ==========================================================================
+         2. PLANNING TASK (Execution Module Extension) - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 2.1 Planning Task: Contractor - View Own Tasks Only -->
+    <record id="rule_planning_task_contractor_own" model="ir.rule">
+        <field name="name">Contractor: Own Planning Tasks Only</field>
+        <field name="model_id" ref="executionpm_planning.model_execution_planning_task"/>
+        <field name="domain_force">[
+            ('project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 2.2 Planning Task: Authority - View All (Read-Only) -->
+    <record id="rule_planning_task_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Planning Tasks (Read-Only)</field>
+        <field name="model_id" ref="executionpm_planning.model_execution_planning_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 2.3 Planning Task: Control Office - Assigned Projects -->
+    <record id="rule_planning_task_control_office" model="ir.rule">
+        <field name="name">Control Office: Planning Tasks in Assigned Projects</field>
+        <field name="model_id" ref="executionpm_planning.model_execution_planning_task"/>
+        <field name="domain_force">[
+            '|', '|',
+            ('project_id.user_id', '=', user.id),
+            ('project_id.message_partner_ids', 'in', [user.partner_id.id]),
+            ('project_id.execution_supervisor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 2.4 Planning Task: PMO - View All -->
+    <record id="rule_planning_task_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Planning Tasks</field>
+        <field name="model_id" ref="executionpm_planning.model_execution_planning_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 2.5 Planning Task: Admin Full Access -->
+    <record id="rule_planning_task_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Planning Task Access</field>
+        <field name="model_id" ref="executionpm_planning.model_execution_planning_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
     </record>
 

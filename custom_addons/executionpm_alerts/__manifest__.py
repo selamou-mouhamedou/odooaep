@@ -25,6 +25,7 @@
         'executionpm_execution',
     ],
     'data': [
+        'security/executionpm_alerts_security.xml',
         'security/ir.model.access.csv',
         'data/alert_config_data.xml',
         'data/mail_template_data.xml',

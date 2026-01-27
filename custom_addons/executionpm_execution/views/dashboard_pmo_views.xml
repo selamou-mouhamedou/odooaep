@@ -1,27 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- PMO Actions -->
+    <!-- ========================================================================
+    PMO Actions - Corrected Business Logic Domains
+    ========================================================================
+    
+    IMPORTANT: These actions define the data visible in dashboard boxes.
+    Each domain is explicitly designed to match the business definition.
+    See data/fix_dashboard_domains.xml for canonical definitions.
+    ======================================================================== -->
+    
+    <!-- Works Waiting Validation: Only submitted and under_review states -->
     <record id="action_pmo_pending_validations" model="ir.actions.act_window">
-        <field name="name">Pending Validations</field>
+        <field name="name">Works </field>
         <field name="res_model">execution.progress</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('state', 'in', ['submitted', 'under_review', 'correction_requested'])]</field>
-        <field name="context">{}</field>
+        <field name="domain">[
+            ('state', 'in', ['submitted', 'under_review']),
+            ('state', 'not in', ['validated', 'rejected', 'draft'])
+        ]</field>
+        <field name="context">{'search_default_group_by_project': 1}</field>
         <field name="search_view_id" ref="view_execution_progress_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                All progress declarations have been validated!
+            </p>
+        </field>
     </record>
 
+    <!-- Tasks Past Planning Deadline: Only from approved plannings, past deadline, incomplete -->
     <record id="action_pmo_delayed_tasks" model="ir.actions.act_window">
-        <field name="name">Delayed Tasks</field>
+        <field name="name">Tasks Past Planning Deadline</field>
         <field name="res_model">execution.planning.task</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[
             ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d')),
             ('progress_status', '!=', 'completed'),
-            ('actual_progress', '&lt;', 100)
+            ('actual_progress', '&lt;', 100),
+            ('planning_id.state', '=', 'approved')
         ]</field>
-        <field name="context">{'search_default_delayed': 0}</field>
+        <field name="context">{'search_default_group_by_project': 1}</field>
         <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No tasks are past their deadline!
+            </p>
+            <p>
+                This view shows tasks from approved plannings whose deadline 
+                has passed but have not yet reached 100% completion.
+            </p>
+        </field>
     </record>
 
     <!-- PMO Dashboard -->
@@ -36,7 +64,7 @@
                         <!-- Critical Alerts will be inserted here by executionpm_alerts -->
                     </column>
                     <column>
-                        <action name="%(action_pmo_pending_validations)d" string="Works Waiting Validation"/>
+                        <action name="%(action_pmo_pending_validations)d" string="Works "/>
                         <action name="%(action_pmo_delayed_tasks)d" string="Tasks Past Planning Deadline"/>
                     </column>
                 </board>

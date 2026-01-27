@@ -1,42 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ==========================================================================
+         VALIDATION MODULE - RECORD RULES
+         =========================================================================
+         
+         Validation Record Access:
+         - All roles: Read access to validation records (audit trail)
+         - PMO: Can create validation records (validate/reject)
+         - Administrator: Full access
+         
+         Key Rules:
+         - Validation records are immutable (managed via model constraints)
+         - PMO cannot validate their own progress declarations
+         ========================================================================== -->
 
-    <!-- Validation records are readable by all users but only created by validators -->
+    <!-- ==========================================================================
+         1. VALIDATION RECORDS - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 1.1 Validation: Base Read Access (Audit Trail) -->
     <record id="rule_execution_validation_read_all" model="ir.rule">
-        <field name="name">Validation: Read All</field>
+        <field name="name">Validation: Read All (Audit Trail)</field>
         <field name="model_id" ref="model_execution_validation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="0"/>
-        <field name="perm_create" eval="0"/>
-        <field name="perm_unlink" eval="0"/>
     </record>
 
-    <!-- Only validators can create validation records (via actions) -->
-    <record id="rule_execution_validation_create_validator" model="ir.rule">
-        <field name="name">Validation: Create by Validators</field>
+    <!-- 1.2 Validation: Contractor - View Own Validations (Read-Only) -->
+    <record id="rule_execution_validation_contractor_own" model="ir.rule">
+        <field name="name">Contractor: View Own Task Validations</field>
         <field name="model_id" ref="model_execution_validation"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+        <field name="domain_force">[
+            ('progress_id.create_uid', '=', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 1.3 Validation: Authority - View All (Read-Only Monitoring) -->
+    <record id="rule_execution_validation_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Validations (Read-Only)</field>
+        <field name="model_id" ref="model_execution_validation"/>
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="0"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="0"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
     </record>
 
-    <!-- Ensure validators cannot modify their own validated declarations -->
-    <!-- (Separation of concerns: validators validate, they don't declare) -->
-    <record id="rule_progress_validator_no_own_declare" model="ir.rule">
-        <field name="name">Validator: Cannot validate own declarations</field>
-        <field name="model_id" ref="executionpm_execution.model_execution_progress"/>
+    <!-- 1.4 Validation: Control Office - View All (Read-Only) -->
+    <record id="rule_execution_validation_control_office_readonly" model="ir.rule">
+        <field name="name">Control Office: View All Validations (Read-Only)</field>
+        <field name="model_id" ref="model_execution_validation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 1.5 Validation: PMO - Create Validations (NOT for own declarations) -->
+    <record id="rule_execution_validation_pmo_create" model="ir.rule">
+        <field name="name">PMO: Create Validations (Not Own Declarations)</field>
+        <field name="model_id" ref="model_execution_validation"/>
+        <field name="domain_force">[
+            ('progress_id.create_uid', '!=', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
-        <field name="domain_force">['|', ('create_uid', '!=', user.id), ('state', '=', 'draft')]</field>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="0"/>
     </record>
 
+    <!-- 1.6 Validation: PMO - View All Validations -->
+    <record id="rule_execution_validation_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Validations</field>
+        <field name="model_id" ref="model_execution_validation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 1.7 Validation: Administrator - Full Access -->
+    <record id="rule_execution_validation_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Validation Access</field>
+        <field name="model_id" ref="model_execution_validation"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ==========================================================================
+         2. PROGRESS INTEGRATION - SEPARATION OF CONCERNS
+         ========================================================================== -->
+
+    <!-- 2.1 Progress: PMO cannot modify their own declaration state -->
+    <record id="rule_progress_pmo_no_self_validate" model="ir.rule">
+        <field name="name">PMO: Cannot Validate Own Declarations</field>
+        <field name="model_id" ref="executionpm_execution.model_execution_progress"/>
+        <field name="domain_force">[
+            '|',
+            ('create_uid', '!=', user.id),
+            ('state', 'in', ['draft', 'rejected'])
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
 
 </odoo>

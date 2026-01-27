@@ -1,13 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
+    <!-- ========================================================================
+    BOX: "Urgent: Critical Alerts" (PMO Dashboard)
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Alerts that are marked as CRITICAL severity
+    - AND are still ACTIVE (not yet resolved or dismissed)
+    - Require immediate executive attention
+    
+    INCLUDED RECORDS:
+    - severity = '4_critical' (highest severity level)
+    - state IN ('open', 'acknowledged', 'in_progress') - active states only
+    
+    EXCLUDED RECORDS:
+    - state = 'resolved' (issue has been fixed)
+    - state = 'dismissed' (false alarm or no longer relevant)
+    - severity != '4_critical' (lower severity alerts)
+    
+    RATIONALE:
+    - Critical alerts require immediate action from PMO/Authority
+    - Resolved/dismissed alerts are historical and should not appear
+    - Only the highest severity alerts warrant dashboard visibility
+    ======================================================================== -->
     <record id="action_pmo_critical_alerts" model="ir.actions.act_window">
-        <field name="name">Critical Alerts</field>
+        <field name="name">Critical Alerts (Active)</field>
         <field name="res_model">execution.alert</field>
         <field name="view_mode">list,kanban,form</field>
-        <field name="domain">[('severity', '=', '4_critical'), ('state', 'not in', ['resolved', 'dismissed'])]</field>
-        <field name="context">{}</field>
+        <field name="domain">[
+            ('severity', '=', '4_critical'),
+            ('state', 'in', ['open', 'acknowledged', 'in_progress']),
+            ('state', 'not in', ['resolved', 'dismissed'])
+        ]</field>
+        <field name="context">{
+            'search_default_group_by_project': 1
+        }</field>
         <field name="search_view_id" ref="view_execution_alert_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No critical alerts at this time!
+            </p>
+            <p>
+                This view shows critical-severity alerts that require 
+                immediate attention. Resolved and dismissed alerts are excluded.
+            </p>
+        </field>
     </record>
 
     <!-- Insert Critical Alerts into the PMO Dashboard -->

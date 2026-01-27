@@ -1,48 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ========================================================================
+    Contractor Dashboard Actions - Corrected Business Logic Domains
+    ========================================================================
+    
+    IMPORTANT: These actions define the data visible in contractor dashboard boxes.
+    Each domain is explicitly designed to match the business definition.
+    See data/fix_dashboard_domains.xml for canonical definitions.
+    ======================================================================== -->
 
-    <!-- Contractor Actions -->
+    <!-- ========================================================================
+    BOX: "Ongoing Work Packages (In Progress)"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Work packages assigned to the current contractor
+    - Currently within execution period (started but deadline not passed)
+    - Not yet completed
+    - Only from approved plannings
+    
+    INCLUDED RECORDS:
+    - Contractor matches current user
+    - date_start <= today (has started)
+    - date_end >= today (deadline not yet passed)
+    - progress_status != 'completed'
+    - planning_id.state = 'approved'
+    
+    EXCLUDED RECORDS:
+    - Tasks not yet started (date_start > today)
+    - Tasks past deadline (date_end < today) - shown in Delayed box
+    - Completed tasks
+    - Tasks from non-approved plannings
+    ======================================================================== -->
     <record id="action_contractor_active_tasks" model="ir.actions.act_window">
-        <field name="name">Active Work Packages</field>
+        <field name="name">Ongoing Work Packages</field>
         <field name="res_model">execution.planning.task</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[
             ('lot_id.planning_id.project_id.execution_contractor_id.related_user_id', '=', uid),
             ('progress_status', '!=', 'completed'),
             ('date_start', '&lt;=', (context_today()).strftime('%Y-%m-%d')),
-            ('date_end', '&gt;=', (context_today()).strftime('%Y-%m-%d'))
+            ('date_end', '&gt;=', (context_today()).strftime('%Y-%m-%d')),
+            ('planning_id.state', '=', 'approved')
         ]</field>
         <field name="context">{}</field>
         <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No active work packages at this time!
+            </p>
+            <p>
+                This view shows your work packages that are currently 
+                within their execution period and awaiting progress updates.
+            </p>
+        </field>
     </record>
 
+    <!-- ========================================================================
+    BOX: "Delayed Work Packages (Overdue)"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Work packages assigned to the current contractor
+    - Whose planned end date has passed (overdue)
+    - But not yet completed
+    - Only from approved plannings
+    
+    INCLUDED RECORDS:
+    - Contractor matches current user
+    - date_end < today (deadline passed)
+    - actual_progress < 100 (not completed)
+    - progress_status != 'completed'
+    - planning_id.state = 'approved'
+    
+    EXCLUDED RECORDS:
+    - Completed tasks (even if finished late)
+    - Tasks still within deadline
+    - Tasks from non-approved plannings
+    ======================================================================== -->
     <record id="action_contractor_delayed_tasks" model="ir.actions.act_window">
-        <field name="name">Overdue Work Packages</field>
+        <field name="name">Delayed Work Packages (Overdue)</field>
         <field name="res_model">execution.planning.task</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[
             ('lot_id.planning_id.project_id.execution_contractor_id.related_user_id', '=', uid),
             ('progress_status', '!=', 'completed'),
             ('actual_progress', '&lt;', 100),
-            ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d'))
+            ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d')),
+            ('planning_id.state', '=', 'approved')
         ]</field>
         <field name="context">{}</field>
         <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No delayed work packages!
+            </p>
+            <p>
+                This view shows your work packages that are past their planned 
+                deadline but have not yet reached 100% completion.
+            </p>
+        </field>
     </record>
 
+    <!-- ========================================================================
+    BOX: "Rejected Reports (Need Correction)"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Progress declarations created by the current contractor
+    - That have been rejected by PMO/Control Office
+    - Requiring corrections before resubmission
+    
+    INCLUDED RECORDS:
+    - create_uid = current user (contractor who submitted)
+    - state = 'rejected' (explicitly rejected by PMO)
+    
+    EXCLUDED RECORDS:
+    - state = 'validated' (approved - no action needed)
+    - state = 'submitted' (still pending review)
+    - state = 'under_review' (still being reviewed)
+    - state = 'draft' (not yet submitted)
+    
+    NOTE: 'correction_requested' is NOT a valid state in execution.progress.
+    Valid states are: draft, submitted, under_review, validated, rejected
+    ======================================================================== -->
     <record id="action_contractor_rejected_declarations" model="ir.actions.act_window">
         <field name="name">Rejected Reports (Need Correction)</field>
         <field name="res_model">execution.progress</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[
             ('create_uid', '=', uid), 
-            ('state', 'in', ['rejected', 'correction_requested'])
+            ('state', '=', 'rejected')
         ]</field>
         <field name="context">{}</field>
         <field name="search_view_id" ref="view_execution_progress_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No rejected reports!
+            </p>
+            <p>
+                This view shows your progress declarations that have been 
+                rejected and need corrections before resubmission.
+            </p>
+        </field>
     </record>
 
-    <!-- Contractor Dashboard -->
+    <!-- ========================================================================
+    Contractor Dashboard Board
+    ======================================================================== -->
     <record id="board_contractor_dashboard_final" model="ir.ui.view">
         <field name="name">board.contractor.dashboard.final</field>
         <field name="model">board.board</field>

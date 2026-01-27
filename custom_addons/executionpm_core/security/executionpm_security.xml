@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 1. The Main Category - Resetting sequence and visibility -->
+    <!-- ==========================================================================
+         ROLE-BASED ACCESS CONTROL (RBAC) CONFIGURATION
+         =========================================================================
+         
+         Roles Hierarchy:
+         - Administrator: Full access to all data and configurations
+         - PMO: Can see all projects/tasks, validate/reject progress (no edit of task data)
+         - Control Office: Can see assigned projects/tasks, provide feedback (no edit/validate)
+         - Contractor: Can only see own assigned tasks, update progress on own tasks
+         - Authority: View-only access to all data for monitoring purposes
+         
+         Financial Data Access:
+         - Only Administrator has access to financial/contractual data
+         - All other roles are restricted from viewing financial information
+         ========================================================================== -->
+
+    <!-- Delete old base read rule that was giving all users access to all projects -->
+    <delete model="ir.rule" search="[('name', '=', 'Execution Project: Base Read (Reference Only)')]"/>
+
+    <!-- ============================================================================
+         NOTE ON RBAC IMPLEMENTATION:
+         
+         Execution projects automatically set privacy_visibility='followers'.
+         This ensures the base Odoo rule 'project_public_members_rule' respects
+         our access restrictions - only users who are followers of the project
+         (added via the contractor/supervisor assignment) can see it.
+         
+         Our Execution PM record rules further refine this by controlling which
+         users can see what based on their role and project assignments.
+         ============================================================================ -->
+
+    <!-- 1. The Main Category -->
     <record id="module_category_executionpm" model="ir.module.category">
         <field name="name">Execution PM</field>
         <field name="parent_id" ref="base.module_category_services"/>
@@ -8,58 +39,172 @@
         <field name="visible" eval="False"/>
     </record>
 
-    <!-- 2. The Groups -->
+    <!-- ==========================================================================
+         2. USER GROUPS DEFINITION
+         ========================================================================== -->
     
-    <!-- Base Access - Hide from standard UI if possible by putting in Technical, 
-         but we want checkboxes back, so let's put it in the main category as the first one -->
+    <!-- Base Access - Minimum access for all Execution PM users -->
     <record id="group_executionpm_base" model="res.groups">
         <field name="name">Base Access</field>
+        <field name="comment">Minimum access level required to access Execution PM module. All other roles inherit from this.</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
+    <!-- Contractor: Limited access to own tasks only -->
     <record id="group_executionpm_contractor" model="res.groups">
         <field name="name">Contractor</field>
+        <field name="comment">Contractors can only see tasks assigned to them. They can update progress on their own tasks but cannot view other contractors' data or approve any progress.</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
+    <!-- Authority: Read-only monitoring access -->
+    <record id="group_executionpm_authority" model="res.groups">
+        <field name="name">Authority</field>
+        <field name="comment">Authorities (e.g., Ministry, Oversight) can view all project data for monitoring purposes but cannot modify any data. No access to financial/contractual information.</field>
+        <field name="category_id" ref="module_category_executionpm"/>
+        <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
+    </record>
+
+    <!-- Control Office: Limited view and feedback capabilities -->
     <record id="group_executionpm_control_office" model="res.groups">
         <field name="name">Control Office</field>
+        <field name="comment">Control Office users can see all tasks in assigned projects and provide feedback/comments, but cannot modify task data or validate progress. No access to financial/contractual data.</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
+    <!-- PMO: Project Management Office with validation capabilities -->
     <record id="group_executionpm_pmo" model="res.groups">
         <field name="name">PMO</field>
+        <field name="comment">PMO users can see all projects and tasks. They can validate or reject task progress submissions but cannot modify task data. No access to financial/contractual data.</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('group_executionpm_control_office'))]"/>
     </record>
 
-    <record id="group_executionpm_authority" model="res.groups">
-        <field name="name">Authority</field>
-        <field name="category_id" ref="module_category_executionpm"/>
-        <field name="implied_ids" eval="[(4, ref('group_executionpm_base'))]"/>
-    </record>
-
+    <!-- Administrator: Full system access -->
     <record id="group_executionpm_admin" model="res.groups">
         <field name="name">Administrator</field>
+        <field name="comment">Full access to all Execution PM data, projects, tasks, and administrative configurations. Can create, modify, delete any records. Can manage user access and roles. Has access to financial and contractual data.</field>
         <field name="category_id" ref="module_category_executionpm"/>
         <field name="implied_ids" eval="[(4, ref('group_executionpm_pmo')), (4, ref('group_executionpm_authority'))]"/>
     </record>
 
-    <!-- Rules are already correct in the file, keeping them as is -->
+    <!-- ==========================================================================
+         3. RECORD RULES - PROJECT ACCESS
+         
+         IMPORTANT: In Odoo, multiple rules for the same model are combined with OR.
+         So we must NOT have a global "base" rule that shows all projects.
+         Each role gets its own specific rule.
+         ========================================================================== -->
+
+    <!-- 3.1 Project: Contractor - ONLY Own Projects (via contractor_id or follower) -->
+    <record id="rule_project_contractor_own" model="ir.rule">
+        <field name="name">Contractor: Own Projects Only</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[
+            '&amp;',
+            ('is_execution_project', '=', True),
+            '|',
+            ('execution_contractor_id.user_ids', 'in', [user.id]),
+            ('message_partner_ids', 'in', [user.partner_id.id])
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 3.2 Project: Authority - View All (Read-Only) -->
+    <record id="rule_project_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Projects (Read-Only)</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[('is_execution_project', '=', True)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 3.4 Project: Control Office - Assigned Projects (via followers/assigned) -->
+    <record id="rule_project_control_office" model="ir.rule">
+        <field name="name">Control Office: Assigned Projects</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[
+            ('is_execution_project', '=', True),
+            '|', '|',
+            ('user_id', '=', user.id),
+            ('message_partner_ids', 'in', [user.partner_id.id]),
+            ('execution_supervisor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 3.5 Project: PMO - Full Read Access -->
+    <record id="rule_project_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Projects</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[('is_execution_project', '=', True)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 3.6 Project: PMO - Limited Write (for status updates via validation) -->
+    <record id="rule_project_pmo_validate" model="ir.rule">
+        <field name="name">PMO: Validate/Update Project Status</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[
+            ('is_execution_project', '=', True),
+            ('execution_state', 'in', ['running', 'at_risk', 'planned'])
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 3.7 Project: Administrator - Full Access -->
+    <record id="rule_project_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Project Access</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ==========================================================================
+         4. RECORD RULES - REFERENCE DATA (Sector, Project Type, Funding Source)
+         ========================================================================== -->
     
+    <!-- 4.1 Project Type: Base Read Access -->
     <record id="rule_project_type_read_all" model="ir.rule">
-        <field name="name">Execution Project Type: Read All</field>
+        <field name="name">Project Type: Base Read</field>
         <field name="model_id" ref="model_execution_project_type"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
+    <!-- 4.2 Project Type: Admin Full Access -->
     <record id="rule_project_type_admin" model="ir.rule">
-        <field name="name">Execution Project Type: Admin Full Access</field>
+        <field name="name">Project Type: Admin Full Access</field>
         <field name="model_id" ref="model_execution_project_type"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
@@ -69,72 +214,176 @@
         <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
     </record>
 
+    <!-- 4.3 Sector: Base Read Access -->
     <record id="rule_sector_read_all" model="ir.rule">
-        <field name="name">Execution Sector: Read All</field>
+        <field name="name">Sector: Base Read</field>
         <field name="model_id" ref="model_execution_sector"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
+    <!-- 4.4 Sector: Admin Full Access -->
+    <record id="rule_sector_admin" model="ir.rule">
+        <field name="name">Sector: Admin Full Access</field>
+        <field name="model_id" ref="model_execution_sector"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- 4.5 Funding Source: Base Read (NO financial data access) -->
     <record id="rule_funding_source_read_all" model="ir.rule">
-        <field name="name">Execution Funding Source: Read All</field>
+        <field name="name">Funding Source: Base Read</field>
         <field name="model_id" ref="model_execution_funding_source"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
         <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
     </record>
 
-    <record id="rule_project_user" model="ir.rule">
-        <field name="name">Execution Project: User Own Projects</field>
-        <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">['|', '|', '|', ('user_id', '=', user.id), ('create_uid', '=', user.id), ('message_partner_ids', 'in', [user.partner_id.id]), ('privacy_visibility', '=', 'portal')]</field>
-        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
-    </record>
-
-    <record id="rule_project_manager" model="ir.rule">
-        <field name="name">Execution Project: Manager Full Access</field>
-        <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_executionpm_pmo'))]"/>
-    </record>
-
-    <record id="rule_authority_readonly_all" model="ir.rule">
-        <field name="name">Authority: Global Read-Only Enforcement</field>
-        <field name="model_id" ref="project.model_project_project"/>
+    <!-- 4.6 Funding Source: Admin Full Access -->
+    <record id="rule_funding_source_admin" model="ir.rule">
+        <field name="name">Funding Source: Admin Full Access</field>
+        <field name="model_id" ref="model_execution_funding_source"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="groups" eval="[(4, ref('group_executionpm_authority'))]"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
     </record>
 
-    <record id="rule_project_contractor_own" model="ir.rule">
-        <field name="name">Contractor: Own Projects Only</field>
-        <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">[('execution_contractor_id.user_ids', 'in', user.id)]</field>
+    <!-- ==========================================================================
+         5. RECORD RULES - ATTACHMENTS
+         ========================================================================== -->
+
+    <!-- 5.1 Attachment: Base Access for Related Records -->
+    <record id="rule_attachment_base_access" model="ir.rule">
+        <field name="name">Attachment: Read Linked to Execution PM Records</field>
+        <field name="model_id" ref="base.model_ir_attachment"/>
+        <field name="domain_force">['|', 
+            ('res_model', 'in', ['project.project', 'project.task', 'execution.planning', 'execution.progress', 'execution.validation']),
+            ('public', '=', True)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
+    </record>
+
+    <!-- 5.2 Attachment: Contractor - Own Attachments Only -->
+    <record id="rule_attachment_contractor_own" model="ir.rule">
+        <field name="name">Contractor: Own Attachments</field>
+        <field name="model_id" ref="base.model_ir_attachment"/>
+        <field name="domain_force">[
+            '|',
+            ('create_uid', '=', user.id),
+            '&amp;',
+            ('res_model', 'in', ['project.project', 'execution.progress']),
+            ('public', '=', True)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
         <field name="groups" eval="[(4, ref('group_executionpm_contractor'))]"/>
     </record>
 
-    <!-- Administrator: Full Access Overrides (Ensures full dashboard access) -->
-    <record id="rule_project_admin_all" model="ir.rule">
-        <field name="name">Execution PM Admin: Project Full Access</field>
-        <field name="model_id" ref="project.model_project_project"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
-    </record>
-
+    <!-- 5.3 Attachment: Admin Full Access -->
     <record id="rule_attachment_admin_all" model="ir.rule">
-        <field name="name">Execution PM Admin: Attachment Full Access</field>
+        <field name="name">Attachment: Admin Full Access</field>
         <field name="model_id" ref="base.model_ir_attachment"/>
         <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
         <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
     </record>
 
-    <record id="rule_attachment_base_access" model="ir.rule">
-        <field name="name">Execution PM: Read Linked Attachments</field>
-        <field name="model_id" ref="base.model_ir_attachment"/>
-        <field name="domain_force">['|', ('res_model', 'in', ['project.project', 'execution.planning', 'execution.progress']), ('public', '=', True)]</field>
-        <field name="groups" eval="[(4, ref('group_executionpm_base'))]"/>
+    <!-- ==========================================================================
+         6. RECORD RULES - PROJECT TASKS
+         ========================================================================== -->
+
+    <!-- 6.1 Task: Contractor - Own Assigned Tasks Only -->
+    <record id="rule_task_contractor_own" model="ir.rule">
+        <field name="name">Contractor: Own Assigned Tasks Only</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain_force">[
+            '|', '|',
+            ('user_ids', 'in', user.id),
+            ('create_uid', '=', user.id),
+            ('project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 6.2 Task: Authority - View All (Read-Only) -->
+    <record id="rule_task_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Tasks (Read-Only)</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 6.3 Task: Control Office - Tasks in Assigned Projects -->
+    <record id="rule_task_control_office" model="ir.rule">
+        <field name="name">Control Office: Tasks in Assigned Projects</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain_force">[
+            '|', '|', '|',
+            ('project_id.user_id', '=', user.id),
+            ('project_id.message_partner_ids', 'in', [user.partner_id.id]),
+            ('project_id.execution_supervisor_id.user_ids', 'in', user.id),
+            ('message_partner_ids', 'in', [user.partner_id.id])
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 6.4 Task: PMO - View All Tasks -->
+    <record id="rule_task_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Tasks</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 6.5 Task: Admin Full Access -->
+    <record id="rule_task_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Task Access</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('group_executionpm_admin'))]"/>
     </record>
 
 </odoo>

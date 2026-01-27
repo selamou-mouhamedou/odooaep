@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ==========================================================================
+         PLANNING MODULE - RECORD RULES
+         =========================================================================
+         
+         Planning Access:
+         - Contractor: Read-only access to planning for their projects
+         - Control Office: Read-only access to assigned projects' planning
+         - Authority: Read-only access to all planning (monitoring)
+         - PMO: Full planning management (create, edit, approve)
+         - Administrator: Full access
+         
+         State-Based Restrictions:
+         - Approved planning documents are read-only (except for admin)
+         ========================================================================== -->
 
-    <!-- Approved planning documents are read-only for everyone except admins -->
+    <!-- ==========================================================================
+         1. EXECUTION PLANNING - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 1.1 Planning: Approved documents are read-only for everyone except admin -->
     <record id="rule_execution_planning_readonly_approved" model="ir.rule">
-        <field name="name">Execution Planning: Read-only when Approved</field>
+        <field name="name">Planning: Read-Only When Approved</field>
         <field name="model_id" ref="model_execution_planning"/>
         <field name="domain_force">[('state', '=', 'approved')]</field>
         <field name="perm_read" eval="True"/>
@@ -13,22 +31,248 @@
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
     </record>
 
-    <!-- PMO: Modify Planning when in Draft or Submitted -->
-    <record id="rule_execution_planning_pmo_edit" model="ir.rule">
-        <field name="name">PMO: Edit Planning</field>
+    <!-- 1.2 Planning: Contractor - View Own Project Planning (Read-Only) -->
+    <record id="rule_execution_planning_contractor_own" model="ir.rule">
+        <field name="name">Contractor: View Own Project Planning</field>
         <field name="model_id" ref="model_execution_planning"/>
-        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
-        <field name="domain_force">[('state', 'in', ['draft', 'submitted'])]</field>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="1"/>
+        <field name="domain_force">[
+            ('project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
     </record>
 
-    <record id="rule_execution_planning_admin_all" model="ir.rule">
-        <field name="name">Execution PM Admin: Planning Full Access</field>
+    <!-- 1.3 Planning: Authority - View All (Read-Only Monitoring) -->
+    <record id="rule_execution_planning_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Planning (Read-Only)</field>
         <field name="model_id" ref="model_execution_planning"/>
         <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 1.4 Planning: Control Office - Assigned Projects (Read-Only) -->
+    <record id="rule_execution_planning_control_office" model="ir.rule">
+        <field name="name">Control Office: View Assigned Project Planning</field>
+        <field name="model_id" ref="model_execution_planning"/>
+        <field name="domain_force">[
+            '|', '|',
+            ('project_id.user_id', '=', user.id),
+            ('project_id.message_partner_ids', 'in', [user.partner_id.id]),
+            ('project_id.execution_supervisor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 1.5 Planning: PMO - Full Management (Create, Edit, Approve) -->
+    <record id="rule_execution_planning_pmo_manage" model="ir.rule">
+        <field name="name">PMO: Manage Planning (Draft/Submitted)</field>
+        <field name="model_id" ref="model_execution_planning"/>
+        <field name="domain_force">[('state', 'in', ['draft', 'submitted', 'rejected'])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 1.6 Planning: PMO - View All (including approved) -->
+    <record id="rule_execution_planning_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Planning</field>
+        <field name="model_id" ref="model_execution_planning"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 1.7 Planning: Administrator - Full Access -->
+    <record id="rule_execution_planning_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Planning Access</field>
+        <field name="model_id" ref="model_execution_planning"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ==========================================================================
+         2. PLANNING LOT - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 2.1 Lot: Contractor - View Own Project Lots (Read-Only) -->
+    <record id="rule_execution_planning_lot_contractor_own" model="ir.rule">
+        <field name="name">Contractor: View Own Project Lots</field>
+        <field name="model_id" ref="model_execution_planning_lot"/>
+        <field name="domain_force">[
+            ('planning_id.project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 2.2 Lot: Authority - View All (Read-Only) -->
+    <record id="rule_execution_planning_lot_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Lots (Read-Only)</field>
+        <field name="model_id" ref="model_execution_planning_lot"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 2.3 Lot: Control Office - Assigned Projects (Read-Only) -->
+    <record id="rule_execution_planning_lot_control_office" model="ir.rule">
+        <field name="name">Control Office: View Assigned Project Lots</field>
+        <field name="model_id" ref="model_execution_planning_lot"/>
+        <field name="domain_force">[
+            '|', '|',
+            ('planning_id.project_id.user_id', '=', user.id),
+            ('planning_id.project_id.message_partner_ids', 'in', [user.partner_id.id]),
+            ('planning_id.project_id.execution_supervisor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 2.4 Lot: PMO - Full Management -->
+    <record id="rule_execution_planning_lot_pmo_manage" model="ir.rule">
+        <field name="name">PMO: Manage Lots</field>
+        <field name="model_id" ref="model_execution_planning_lot"/>
+        <field name="domain_force">[('planning_id.state', 'in', ['draft', 'submitted', 'rejected'])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 2.5 Lot: PMO - View All -->
+    <record id="rule_execution_planning_lot_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Lots</field>
+        <field name="model_id" ref="model_execution_planning_lot"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 2.6 Lot: Administrator - Full Access -->
+    <record id="rule_execution_planning_lot_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Lot Access</field>
+        <field name="model_id" ref="model_execution_planning_lot"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ==========================================================================
+         3. PLANNING TASK - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 3.1 Task: Contractor - View Own Project Tasks (Read-Only) -->
+    <record id="rule_execution_planning_task_contractor_own" model="ir.rule">
+        <field name="name">Contractor: View Own Project Tasks</field>
+        <field name="model_id" ref="model_execution_planning_task"/>
+        <field name="domain_force">[
+            ('project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 3.2 Task: Authority - View All (Read-Only) -->
+    <record id="rule_execution_planning_task_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Tasks (Read-Only)</field>
+        <field name="model_id" ref="model_execution_planning_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 3.3 Task: Control Office - Assigned Projects (Read-Only) -->
+    <record id="rule_execution_planning_task_control_office" model="ir.rule">
+        <field name="name">Control Office: View Assigned Project Tasks</field>
+        <field name="model_id" ref="model_execution_planning_task"/>
+        <field name="domain_force">[
+            '|', '|',
+            ('project_id.user_id', '=', user.id),
+            ('project_id.message_partner_ids', 'in', [user.partner_id.id]),
+            ('project_id.execution_supervisor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 3.4 Task: PMO - Full Management -->
+    <record id="rule_execution_planning_task_pmo_manage" model="ir.rule">
+        <field name="name">PMO: Manage Tasks</field>
+        <field name="model_id" ref="model_execution_planning_task"/>
+        <field name="domain_force">[('planning_id.state', 'in', ['draft', 'submitted', 'rejected'])]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 3.5 Task: PMO - View All -->
+    <record id="rule_execution_planning_task_pmo_read" model="ir.rule">
+        <field name="name">PMO: View All Tasks</field>
+        <field name="model_id" ref="model_execution_planning_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 3.6 Task: Administrator - Full Access -->
+    <record id="rule_execution_planning_task_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Task Access</field>
+        <field name="model_id" ref="model_execution_planning_task"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
         <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
     </record>
 

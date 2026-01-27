@@ -414,8 +414,13 @@ class ProjectProject(models.Model):
     def create(self, vals_list):
         """Generate national project code on creation if execution project."""
         for vals in vals_list:
-            if vals.get('is_execution_project') and not vals.get('national_project_code'):
-                vals['national_project_code'] = self._generate_national_code(vals)
+            if vals.get('is_execution_project'):
+                # Generate national code
+                if not vals.get('national_project_code'):
+                    vals['national_project_code'] = self._generate_national_code(vals)
+                # Set privacy to 'followers' to enable proper RBAC via record rules
+                # This ensures base Odoo rules respect our access restrictions
+                vals['privacy_visibility'] = 'followers'
         return super().create(vals_list)
 
     def write(self, vals):
@@ -424,13 +429,16 @@ class ProjectProject(models.Model):
             vals['execution_state_changed_date'] = date.today()
             vals['execution_state_changed_by'] = self.env.uid
         
-        # Generate code if becoming an execution project
+        # Handle becoming an execution project
         if vals.get('is_execution_project'):
             for project in self:
                 if not project.national_project_code:
                     vals['national_project_code'] = self._generate_national_code(vals)
+            # Set privacy to 'followers' to enable proper RBAC
+            vals['privacy_visibility'] = 'followers'
         
         return super().write(vals)
+
 
     def _generate_national_code(self, vals=None):
         """Generate unique national project code."""

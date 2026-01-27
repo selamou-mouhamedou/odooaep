@@ -72,9 +72,9 @@
                        decoration-warning="execution_state == 'suspended'"
                        decoration-muted="execution_state == 'closed'"/>
                 <field name="execution_progress" widget="progressbar" optional="show"/>
-                <field name="execution_budget" optional="show" sum="Total Budget"/>
-                <field name="execution_currency_id" column_invisible="1"/>
-                <field name="execution_funding_source_id" optional="hide"/>
+                <field name="execution_budget" optional="show" sum="Total Budget" groups="executionpm_core.group_executionpm_admin"/>
+                <field name="execution_currency_id" column_invisible="1" groups="executionpm_core.group_executionpm_admin"/>
+                <field name="execution_funding_source_id" optional="hide" groups="executionpm_core.group_executionpm_admin"/>
                 <field name="execution_planned_start" optional="show"/>
                 <field name="execution_planned_end" optional="show"/>
                 <field name="user_id" optional="show" widget="many2one_avatar_user"/>
@@ -177,7 +177,8 @@
                         </group>
                     </group>
                     <group>
-                        <group string="Budget &amp; Funding">
+                        <!-- Budget & Funding section - ADMIN ONLY -->
+                        <group string="Budget &amp; Funding" groups="executionpm_core.group_executionpm_admin">
                             <field name="execution_currency_id" groups="base.group_multi_currency"/>
                             <field name="execution_budget"/>
                             <field name="execution_funding_source_id" 
@@ -241,8 +242,9 @@
                 <field name="execution_project_type_id"/>
                 <field name="execution_state"/>
                 <field name="execution_progress"/>
-                <field name="execution_budget"/>
-                <field name="execution_currency_id"/>
+                <!-- Financial fields hidden from non-admins in kanban -->
+                <field name="execution_budget" groups="executionpm_core.group_executionpm_admin"/>
+                <field name="execution_currency_id" groups="executionpm_core.group_executionpm_admin"/>
                 <field name="user_id"/>
                 <field name="color"/>
                 <templates>
@@ -271,7 +273,8 @@
                                     <field name="execution_progress" widget="progressbar" 
                                            options="{'editable': false}"/>
                                 </div>
-                                <div class="d-flex justify-content-between mt-2">
+                                <!-- Budget info - Admin only -->
+                                <div class="d-flex justify-content-between mt-2" groups="executionpm_core.group_executionpm_admin">
                                     <span class="text-muted">Budget:</span>
                                     <field name="execution_budget" widget="monetary" 
                                            options="{'currency_field': 'execution_currency_id'}"/>

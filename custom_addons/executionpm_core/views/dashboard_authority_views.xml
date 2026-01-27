@@ -1,16 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- ========================================================================
+    Authority Dashboard Actions - Corrected Business Logic Domains
+    ========================================================================
+    
+    IMPORTANT: These actions define the data visible in Authority dashboard boxes.
+    Each domain is explicitly designed to match the business definition.
+    Authority users (Ministers, Directors, Auditors) see portfolio-level data.
+    ======================================================================== -->
 
-    <!-- Authority Actions -->
+    <!-- ========================================================================
+    BOX: "Total Infrastructure Portfolio"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - All execution projects in the system
+    - Used for portfolio-level visibility
+    
+    INCLUDED RECORDS:
+    - is_execution_project = True (infrastructure projects only)
+    
+    EXCLUDED RECORDS:
+    - Standard Odoo projects (is_execution_project = False)
+    ======================================================================== -->
     <record id="action_authority_total_projects" model="ir.actions.act_window">
-        <field name="name">Total Portfolio</field>
+        <field name="name">Total Infrastructure Portfolio</field>
         <field name="res_model">project.project</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">list,form,kanban</field>
         <field name="domain">[('is_execution_project', '=', True)]</field>
         <field name="context">{'default_is_execution_project': True}</field>
         <field name="search_view_id" ref="view_execution_project_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No infrastructure projects yet!
+            </p>
+            <p>
+                Create your first execution project to begin tracking 
+                infrastructure development progress.
+            </p>
+        </field>
     </record>
 
+    <!-- ========================================================================
+    BOX: "Critical Risks (Projects At Risk)"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Execution projects that have been flagged as "at risk"
+    - Require executive attention and intervention
+    
+    INCLUDED RECORDS:
+    - is_execution_project = True
+    - execution_state = 'at_risk' (explicitly flagged as risky)
+    
+    EXCLUDED RECORDS:
+    - Projects in other states (draft, planned, running, suspended, closed)
+    - Non-execution projects
+    
+    RATIONALE:
+    - "At Risk" is a specific workflow state set by PMO/Control Office
+    - These projects need immediate executive oversight
+    ======================================================================== -->
     <record id="action_authority_at_risk" model="ir.actions.act_window">
         <field name="name">Projects At Risk</field>
         <field name="res_model">project.project</field>
@@ -21,8 +71,30 @@
         ]</field>
         <field name="context">{}</field>
         <field name="search_view_id" ref="view_execution_project_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No projects are at risk!
+            </p>
+            <p>
+                This view shows infrastructure projects that have been 
+                flagged as "At Risk" and require executive attention.
+            </p>
+        </field>
     </record>
 
+    <!-- ========================================================================
+    BOX: "Portfolio Delay Analysis (Graph)"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Visual analysis of delays across all execution projects
+    - Shows delay days for portfolio-level monitoring
+    
+    INCLUDED RECORDS:
+    - All execution projects (for comprehensive visibility)
+    
+    NOTE: Graph view shows execution_delay_days as the measure
+    ======================================================================== -->
     <record id="action_authority_avg_delay_graph" model="ir.actions.act_window">
         <field name="name">Portfolio Delay Analysis (Days)</field>
         <field name="res_model">project.project</field>
@@ -32,6 +104,19 @@
         <field name="search_view_id" ref="view_execution_project_search"/>
     </record>
 
+    <!-- ========================================================================
+    BOX: "Global Execution Rate (Graph)"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Visual representation of physical progress across all projects
+    - Shows overall execution progress percentage
+    
+    INCLUDED RECORDS:
+    - All execution projects (for comprehensive visibility)
+    
+    NOTE: Graph view shows execution_progress as the measure
+    ======================================================================== -->
     <record id="action_authority_execution_rate_graph" model="ir.actions.act_window">
         <field name="name">Global Execution Rate (%)</field>
         <field name="res_model">project.project</field>
@@ -41,7 +126,80 @@
         <field name="search_view_id" ref="view_execution_project_search"/>
     </record>
 
-    <!-- Authority Dashboard -->
+    <!-- ========================================================================
+    BOX: "Suspended Projects" (Additional Authority Widget)
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Execution projects that have been suspended
+    - May require decisions about resumption or closure
+    
+    INCLUDED RECORDS:
+    - is_execution_project = True
+    - execution_state = 'suspended'
+    
+    EXCLUDED RECORDS:
+    - Active projects (draft, planned, running, at_risk)
+    - Closed projects
+    ======================================================================== -->
+    <record id="action_authority_suspended_projects" model="ir.actions.act_window">
+        <field name="name">Suspended Projects</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('is_execution_project', '=', True), 
+            ('execution_state', '=', 'suspended')
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_execution_project_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No projects are suspended!
+            </p>
+            <p>
+                This view shows infrastructure projects that have been 
+                suspended and may require decisions about resumption.
+            </p>
+        </field>
+    </record>
+
+    <!-- ========================================================================
+    BOX: "Actively Running Projects"
+    ========================================================================
+    
+    BUSINESS DEFINITION:
+    - Execution projects currently in active execution
+    - Normal operations, not at risk or suspended
+    
+    INCLUDED RECORDS:
+    - is_execution_project = True
+    - execution_state = 'running'
+    
+    EXCLUDED RECORDS:
+    - Projects in risk or suspended states
+    - Draft/planned projects
+    - Closed projects
+    ======================================================================== -->
+    <record id="action_authority_running_projects" model="ir.actions.act_window">
+        <field name="name">Active Projects (Running)</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('is_execution_project', '=', True), 
+            ('execution_state', '=', 'running')
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_execution_project_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No projects are currently running!
+            </p>
+        </field>
+    </record>
+
+    <!-- ========================================================================
+    Authority Dashboard Board
+    ======================================================================== -->
     <record id="board_authority_dashboard" model="ir.ui.view">
         <field name="name">board.authority.dashboard</field>
         <field name="model">board.board</field>

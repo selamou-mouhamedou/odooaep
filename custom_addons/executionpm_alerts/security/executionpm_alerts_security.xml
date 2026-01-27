@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==========================================================================
+         ALERTS MODULE - RECORD RULES
+         =========================================================================
+         
+         Alert Access:
+         - Contractor: View alerts for their projects only
+         - Control Office: View alerts for assigned projects
+         - Authority: View all alerts (read-only monitoring)
+         - PMO: Manage alerts
+         - Administrator: Full access
+         ========================================================================== -->
+
+    <!-- ==========================================================================
+         1. EXECUTION ALERTS - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 1.1 Alert: Contractor - View Own Project Alerts (Read-Only) -->
+    <record id="rule_execution_alert_contractor_own" model="ir.rule">
+        <field name="name">Contractor: View Own Project Alerts</field>
+        <field name="model_id" ref="model_execution_alert"/>
+        <field name="domain_force">[
+            ('project_id.execution_contractor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_contractor'))]"/>
+    </record>
+
+    <!-- 1.2 Alert: Authority - View All (Read-Only) -->
+    <record id="rule_execution_alert_authority_readonly" model="ir.rule">
+        <field name="name">Authority: View All Alerts (Read-Only)</field>
+        <field name="model_id" ref="model_execution_alert"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_authority'))]"/>
+    </record>
+
+    <!-- 1.3 Alert: Control Office - Assigned Projects (Read-Only) -->
+    <record id="rule_execution_alert_control_office" model="ir.rule">
+        <field name="name">Control Office: View Assigned Project Alerts</field>
+        <field name="model_id" ref="model_execution_alert"/>
+        <field name="domain_force">[
+            '|', '|',
+            ('project_id.user_id', '=', user.id),
+            ('project_id.message_partner_ids', 'in', [user.partner_id.id]),
+            ('project_id.execution_supervisor_id.user_ids', 'in', user.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_control_office'))]"/>
+    </record>
+
+    <!-- 1.4 Alert: PMO - Manage All Alerts -->
+    <record id="rule_execution_alert_pmo_manage" model="ir.rule">
+        <field name="name">PMO: Manage All Alerts</field>
+        <field name="model_id" ref="model_execution_alert"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 1.5 Alert: Admin - Full Access -->
+    <record id="rule_execution_alert_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Alert Access</field>
+        <field name="model_id" ref="model_execution_alert"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
+    <!-- ==========================================================================
+         2. ALERT CONFIG - RECORD RULES
+         ========================================================================== -->
+
+    <!-- 2.1 Alert Config: Base - Read Only -->
+    <record id="rule_execution_alert_config_read" model="ir.rule">
+        <field name="name">Alert Config: Read All</field>
+        <field name="model_id" ref="model_execution_alert_config"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_base'))]"/>
+    </record>
+
+    <!-- 2.2 Alert Config: PMO - Manage -->
+    <record id="rule_execution_alert_config_pmo_manage" model="ir.rule">
+        <field name="name">PMO: Manage Alert Config</field>
+        <field name="model_id" ref="model_execution_alert_config"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_pmo'))]"/>
+    </record>
+
+    <!-- 2.3 Alert Config: Admin - Full Access -->
+    <record id="rule_execution_alert_config_admin_all" model="ir.rule">
+        <field name="name">Administrator: Full Alert Config Access</field>
+        <field name="model_id" ref="model_execution_alert_config"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
+</odoo>
