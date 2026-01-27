@@ -26,6 +26,14 @@ class ExecutionPlanningTask(models.Model):
         store=True,
         readonly=True,
     )
+    project_id = fields.Many2one(
+        comodel_name='project.project',
+        string='Project',
+        related='planning_id.project_id',
+        store=True,
+        readonly=True,
+        index=True,
+    )
     parent_task_id = fields.Many2one(
         comodel_name='execution.planning.task',
         string='Parent Task',
@@ -36,6 +44,15 @@ class ExecutionPlanningTask(models.Model):
         comodel_name='execution.planning.task',
         inverse_name='parent_task_id',
         string='Subtasks',
+    )
+
+    project_task_id = fields.Many2one(
+        comodel_name='project.task',
+        string='Linked Project Task',
+        readonly=True,
+        copy=False,
+        ondelete='set null',
+        help='The standard Odoo task synchronized with this planning task.'
     )
 
     # Timeline

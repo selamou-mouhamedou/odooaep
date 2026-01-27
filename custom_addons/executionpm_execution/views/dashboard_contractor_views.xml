@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Contractor Actions -->
+    <record id="action_contractor_active_tasks" model="ir.actions.act_window">
+        <field name="name">Active Work Packages</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('lot_id.planning_id.project_id.execution_contractor_id.related_user_id', '=', uid),
+            ('progress_status', '!=', 'completed'),
+            ('date_start', '&lt;=', (context_today()).strftime('%Y-%m-%d')),
+            ('date_end', '&gt;=', (context_today()).strftime('%Y-%m-%d'))
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+    </record>
+
+    <record id="action_contractor_delayed_tasks" model="ir.actions.act_window">
+        <field name="name">Overdue Work Packages</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('lot_id.planning_id.project_id.execution_contractor_id.related_user_id', '=', uid),
+            ('progress_status', '!=', 'completed'),
+            ('actual_progress', '&lt;', 100),
+            ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d'))
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+    </record>
+
+    <record id="action_contractor_rejected_declarations" model="ir.actions.act_window">
+        <field name="name">Rejected Reports (Need Correction)</field>
+        <field name="res_model">execution.progress</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('create_uid', '=', uid), 
+            ('state', 'in', ['rejected', 'correction_requested'])
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_execution_progress_search"/>
+    </record>
+
+    <!-- Contractor Dashboard -->
+    <record id="board_contractor_dashboard_final" model="ir.ui.view">
+        <field name="name">board.contractor.dashboard.final</field>
+        <field name="model">board.board</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Contractor Site Center">
+                <board style="2-1">
+                    <column>
+                        <action name="%(action_contractor_active_tasks)d" string="Ongoing Work Packages (In Progress)"/>
+                        <action name="%(action_contractor_delayed_tasks)d" string="Delayed Work Packages (Overdue)"/>
+                    </column>
+                    <column>
+                        <action name="%(action_contractor_rejected_declarations)d" string="Rejected Reports (Needs Correction)"/>
+                    </column>
+                </board>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dashboard_contractor_final" model="ir.actions.act_window">
+        <field name="name">Contractor Site Hub</field>
+        <field name="res_model">board.board</field>
+        <field name="view_mode">form</field>
+        <field name="usage">menu</field>
+        <field name="view_id" ref="board_contractor_dashboard_final"/>
+    </record>
+
+    <menuitem id="menu_dashboard_contractor_site"
+              name="Contractor / Site Hub"
+              parent="executionpm_core.menu_executionpm_dashboard_root"
+              action="action_dashboard_contractor_final"
+              sequence="30"
+              groups="executionpm_core.group_executionpm_base"/>
+
+</odoo>

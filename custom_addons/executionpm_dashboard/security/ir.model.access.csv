@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_board_authority,board.authority.dashboard,board.model_board_board,base.group_user,1,1,1,1
-access_board_pmo,board.pmo.dashboard,board.model_board_board,base.group_user,1,1,1,1
-access_board_contractor,board.contractor.dashboard,board.model_board_board,base.group_user,1,1,1,1

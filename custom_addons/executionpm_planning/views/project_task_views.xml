@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherit Task Form View (Base Synchronization) -->
+    <record id="view_task_form_inherit_executionpm_base" model="ir.ui.view">
+        <field name="name">project.task.form.inherit.executionpm.base</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <!-- Navigation Button -->
+            <xpath expr="//header" position="inside">
+                <button name="action_view_planning_task" string="View Planning Task" type="object" 
+                        invisible="not execution_planning_task_id"
+                        class="oe_highlight"/>
+            </xpath>
+            
+            <!-- Link to Planning Task -->
+            <xpath expr="//div[@name='project']" position="after">
+                <field name="execution_planning_task_id" invisible="not execution_planning_task_id" readonly="1"/>
+                <field name="execution_progress" widget="progressbar" invisible="not execution_planning_task_id" nolabel="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -30,6 +30,7 @@ Key Features:
         'views/execution_planning_lot_views.xml',
         'views/execution_planning_task_views.xml',
         'views/project_project_views.xml',
+        'views/project_task_views.xml',
         'views/menu_views.xml',
     ],
     'installable': True,

@@ -152,6 +152,7 @@
                     <group>
                         <group string="Identification">
                             <field name="national_project_code" readonly="1"/>
+                            <field name="execution_ref_code"/>
                             <field name="execution_project_type_id" 
                                    options="{'no_create': True}"/>
                             <field name="execution_sector_id" 
@@ -218,12 +219,12 @@
                     <field name="execution_objective" placeholder="Describe the main objective of this project..."/>
                     <separator string="Project Scope"/>
                     <field name="execution_scope" placeholder="Define the scope of work..."/>
-                    <separator string="Notes"/>
                     <field name="execution_notes"/>
                 </page>
             </xpath>
         </field>
     </record>
+
 
     <!-- ========== KANBAN VIEW ========== -->
     <record id="view_execution_project_kanban" model="ir.ui.view">

@@ -37,4 +37,11 @@
         <field name="perm_unlink" eval="0"/>
     </record>
 
+    <record id="rule_execution_progress_admin_all" model="ir.rule">
+        <field name="name">Execution PM Admin: Progress Full Access</field>
+        <field name="model_id" ref="model_execution_progress"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('executionpm_core.group_executionpm_admin'))]"/>
+    </record>
+
 </odoo>

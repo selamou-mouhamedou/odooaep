@@ -104,6 +104,19 @@ class ExecutionPlanningTaskProgress(models.Model):
                 task.validated_progress = 0.0
                 task.last_validated_date = False
 
+        # Sync progress to Odoo Project Tasks
+        for task in self:
+            if task.project_task_id:
+                # Sync to our custom field on the project task
+                vals = {'execution_progress': task.validated_progress}
+                if task.validated_progress >= 100:
+                    vals['state'] = '1_done'
+                elif task.validated_progress > 0:
+                    vals['state'] = '01_in_progress'
+                else:
+                    vals['state'] = '04_waiting_normal'
+                task.project_task_id.with_context(sync_in_progress=True).write(vals)
+
     # -------------------------------------------------------------------------
     # COMPUTE: Planned Progress to Date (Time-based)
     # -------------------------------------------------------------------------

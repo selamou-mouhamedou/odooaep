@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Execution PM Core',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'category': 'Project',
     'summary': 'Core module for infrastructure project execution management',
     'description': """
@@ -30,6 +30,7 @@ This is the foundation module for the Execution PM suite.
         'base',
         'project',
         'mail',
+        'board',
     ],
     'data': [
         # Security
@@ -39,13 +40,15 @@ This is the foundation module for the Execution PM suite.
         'data/execution_project_type_data.xml',
         'data/execution_sector_data.xml',
         'data/ir_sequence_data.xml',
-        # Views
+        # Views (Order matters: Menus first so they can be referenced as parents)
+        'views/menu_views.xml',
         'wizards/execution_project_state_wizard_views.xml',
         'views/execution_project_views.xml',
         'views/execution_project_type_views.xml',
         'views/execution_sector_views.xml',
         'views/execution_funding_source_views.xml',
-        'views/menu_views.xml',
+        'views/dashboard_authority_views.xml',
+        'views/res_users_views.xml',
     ],
     'demo': [],
     'installable': True,

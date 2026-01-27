@@ -15,8 +15,10 @@
                     <group>
                         <group string="Task Details">
                             <field name="lot_id"/>
+                            <field name="project_id" readonly="1"/>
                             <field name="planning_id" invisible="1"/>
                             <field name="sequence"/>
+                            <field name="project_task_id" invisible="not project_task_id"/>
                         </group>
                         <group string="Schedule">
                             <field name="date_start"/>
@@ -38,12 +40,31 @@
             <list>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
+                <field name="project_id"/>
                 <field name="lot_id"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="duration"/>
                 <field name="weight"/>
             </list>
+        </field>
+    </record>
+
+    <!-- Tasks Search View -->
+    <record id="view_execution_planning_task_search" model="ir.ui.view">
+        <field name="name">execution.planning.task.search</field>
+        <field name="model">execution.planning.task</field>
+        <field name="arch" type="xml">
+            <search string="Search Planning Tasks">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="lot_id"/>
+                <filter string="My Projects" name="my_projects" domain="[('project_id.user_id', '=', uid)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="Lot / Package" name="group_by_lot" context="{'group_by': 'lot_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 

@@ -3,3 +3,4 @@ from . import execution_project_type
 from . import execution_sector
 from . import execution_funding_source
 from . import execution_project
+from . import res_users

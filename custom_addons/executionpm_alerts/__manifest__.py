@@ -32,6 +32,7 @@
         'views/execution_alert_views.xml',
         'views/execution_alert_config_views.xml',
         'views/project_alert_views.xml',
+        'views/dashboard_extension_views.xml',
         'views/menu_views.xml',
     ],
     'installable': True,

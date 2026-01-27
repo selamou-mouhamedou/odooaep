@@ -90,6 +90,15 @@ class ExecutionPlanning(models.Model):
     
     active = fields.Boolean(default=True)
 
+    @api.constrains('lot_ids', 'lot_ids.task_ids', 'lot_ids.task_ids.weight')
+    def _check_total_weight(self):
+        for record in self:
+            if record.total_physical_weight > 100.001:  # Allow minimal float margin
+                raise ValidationError(_(
+                    "Total Physical Weight cannot surpass 100%%. Current total: %.2f%%.\n"
+                    "Please adjust the weights of your tasks to stay within the 100%% limit."
+                ) % record.total_physical_weight)
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -141,6 +150,9 @@ class ExecutionPlanning(models.Model):
             'rejection_reason': False
         })
         
+        # Synchronize tasks to Odoo Project Tasks
+        self._sync_to_project_tasks()
+        
         # Link this planning to the project as the master schedule
         self.project_id.message_post(
             body=_("New Execution Planning approved: %s") % self.name,
@@ -160,3 +172,37 @@ class ExecutionPlanning(models.Model):
     def action_reset_draft(self):
         self.ensure_one()
         self.write({'state': 'draft'})
+
+    def _sync_to_project_tasks(self):
+        """
+        Create or update Odoo project.task records for each planning task.
+        Handles hierarchy (parent/subtasks).
+        """
+        self.ensure_one()
+        ProjectTask = self.env['project.task']
+        all_tasks = self.lot_ids.mapped('task_ids')
+        
+        # Pass 1: Create/Update tasks (base fields)
+        for task in all_tasks:
+            vals = {
+                'name': task.name,
+                'project_id': self.project_id.id,
+                'planned_date_begin': task.date_start,
+                'date_deadline': task.date_end,
+                'sequence': task.sequence,
+                'execution_planning_task_id': task.id,
+                'state': '04_waiting_normal',
+            }
+            
+            if task.project_task_id:
+                task.project_task_id.write(vals)
+            else:
+                new_task = ProjectTask.create(vals)
+                task.project_task_id = new_task.id
+
+        # Pass 2: Setup Hierarchy
+        for task in all_tasks:
+            if task.parent_task_id and task.parent_task_id.project_task_id:
+                task.project_task_id.parent_id = task.parent_task_id.project_task_id.id
+            else:
+                task.project_task_id.parent_id = False

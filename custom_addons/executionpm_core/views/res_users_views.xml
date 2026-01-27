@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_users_view_form_inherit_executionpm" model="ir.ui.view">
+        <field name="name">res.users.view.form.inherit.executionpm</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="inside">
+                <group string="Execution PM Roles" name="executionpm_roles_section" priority="1">
+                    <group>
+                        <field name="group_executionpm_admin"/>
+                        <field name="group_executionpm_pmo"/>
+                        <field name="group_executionpm_control_office"/>
+                    </group>
+                    <group>
+                        <field name="group_executionpm_contractor"/>
+                        <field name="group_executionpm_authority"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

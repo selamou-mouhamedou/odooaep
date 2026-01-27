@@ -22,6 +22,11 @@
               parent="menu_executionpm_root"
               sequence="10"/>
 
+    <menuitem id="menu_executionpm_dashboard_root"
+              name="Dashboards"
+              parent="menu_executionpm_root"
+              sequence="5"/>
+
     <menuitem id="menu_execution_project_all"
               name="All Projects"
               parent="menu_executionpm_projects"

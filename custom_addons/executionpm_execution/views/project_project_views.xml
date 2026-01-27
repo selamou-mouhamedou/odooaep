@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_execution_project_form_inherit_execution" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.execution</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="executionpm_planning.view_execution_project_form_inherit_planning"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button" type="action" 
+                        name="%(executionpm_execution.action_execution_project_tasks)d"
+                        icon="fa-tasks"
+                        invisible="not is_execution_project"
+                        context="{'search_default_project_id': id, 'default_project_id': id}">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Work Progress</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+
+</odoo>

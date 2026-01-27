@@ -223,13 +223,7 @@ class ExecutionProgress(models.Model):
                     "Execution date (%s) cannot be before the task planned start date (%s)."
                 ) % (record.execution_date, record.task_id.date_start))
 
-            # Rule 3: Must be <= task planned end date
-            if record.task_id and record.task_id.date_end and record.execution_date > record.task_id.date_end:
-                raise ValidationError(_(
-                    "Execution date (%s) cannot be after the task planned end date (%s)."
-                ) % (record.execution_date, record.task_id.date_end))
-
-            # Rule 4: Must be >= project start date
+            # Rule 3: Must be >= project start date
             project = record.project_id
             if project and project.execution_planned_start and record.execution_date < project.execution_planned_start:
                 raise ValidationError(_(
@@ -246,22 +240,37 @@ class ExecutionProgress(models.Model):
     # -------------------------------------------------------------------------
     # CRUD
     # -------------------------------------------------------------------------
+    def _update_attachment_link(self):
+        """Ensure attachments are linked to this record for security checks."""
+        for record in self:
+            if record.attachment_ids:
+                (record.attachment_ids - record.attachment_ids.filtered('res_id')).write({
+                    'res_model': self._name,
+                    'res_id': record.id,
+                })
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('execution.progress') or _('New')
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records._update_attachment_link()
+        return records
 
     def write(self, vals):
         # Prevent editing validated records (except by system/superuser)
         for record in self:
             if record.state == 'validated' and not self.env.su:
                 # Allow only specific fields to be edited post-validation
-                allowed_fields = {'message_follower_ids', 'message_ids', 'activity_ids'}
+                allowed_fields = {'message_follower_ids', 'message_ids', 'activity_ids', 'attachment_ids'}
                 if not set(vals.keys()).issubset(allowed_fields):
                     raise UserError(_('Validated progress declarations cannot be modified.'))
-        return super().write(vals)
+        
+        res = super().write(vals)
+        if 'attachment_ids' in vals:
+            self._update_attachment_link()
+        return res
 
     # -------------------------------------------------------------------------
     # WORKFLOW ACTIONS

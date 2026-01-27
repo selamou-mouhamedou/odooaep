@@ -7,11 +7,14 @@
         <field name="model">execution.planning.task</field>
         <field name="inherit_id" ref="executionpm_planning.view_execution_planning_task_tree"/>
         <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">date_end &lt; current_date and progress_status != 'completed'</attribute>
+            </xpath>
             <field name="weight" position="after">
                 <field name="actual_progress" widget="progressbar"/>
                 <field name="progress_status" widget="badge"
-                       decoration-muted="progress_status == 'not_started'"
-                       decoration-primary="progress_status == 'in_progress'"
+                       decoration-info="progress_status == 'not_started'"
+                       decoration-warning="progress_status == 'in_progress'"
                        decoration-success="progress_status == 'completed'"/>
                 <field name="is_delayed" invisible="1"/>
                 <field name="max_delay_days" string="Delay" 
@@ -21,11 +24,27 @@
         </field>
     </record>
 
+    <!-- Extend Planning Task Search View -->
+    <record id="view_execution_planning_task_search_inherit" model="ir.ui.view">
+        <field name="name">execution.planning.task.search.inherit.execution</field>
+        <field name="model">execution.planning.task</field>
+        <field name="inherit_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_projects']" position="after">
+                <separator/>
+                <filter string="Delayed" name="delayed" domain="[('date_end', '&lt;', context_today().strftime('%Y-%m-%d')), ('progress_status', '!=', 'completed')]"/>
+                <filter string="In Progress" name="filter_in_progress" domain="[('progress_status', '=', 'in_progress')]"/>
+                <filter string="Completed" name="filter_completed" domain="[('progress_status', '=', 'completed')]"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Action for All Tasks -->
     <record id="action_execution_planning_task_all" model="ir.actions.act_window">
         <field name="name">All Tasks</field>
         <field name="res_model">execution.planning.task</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

@@ -17,6 +17,31 @@ class ProjectProject(models.Model):
     """
     _inherit = 'project.project'
 
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None):
+        """
+        Global filter: In the context of the Execution PM module,
+        hide standard projects that are not marked as infrastructure projects.
+        """
+        if self.env.context.get('is_execution_pm_context') or self.env.context.get('default_is_execution_project'):
+            domain = [('is_execution_project', '=', True), ('national_project_code', '!=', False)] + list(domain)
+        return super()._search(domain, offset, limit, order)
+
+    def _register_hook(self):
+        """
+        Isolation Hook: Automatically untags Odoo standard demo projects 
+        from the Execution PM views to keep dashboards clean.
+        """
+        res = super()._register_hook()
+        demo_names = ['Home Construction', 'Office Design', 'Renovations', 'Research & Development']
+        demo_projects = self.search([
+            ('name', 'in', demo_names),
+            ('is_execution_project', '=', True)
+        ])
+        if demo_projects:
+            demo_projects.write({'is_execution_project': False})
+        return res
+
     # -------------------------------------------------------------------------
     # IDENTIFICATION FIELDS
     # -------------------------------------------------------------------------
@@ -32,6 +57,11 @@ class ProjectProject(models.Model):
         copy=False,
         tracking=True,
         help='Unique national identifier for this project',
+    )
+    execution_ref_code = fields.Char(
+        string='Ref Code',
+        tracking=True,
+        help='Internal reference code for the project (optional)',
     )
     execution_project_type_id = fields.Many2one(
         comodel_name='execution.project.type',
@@ -178,6 +208,11 @@ class ProjectProject(models.Model):
         compute='_compute_duration_actual',
         store=True,
     )
+    execution_delay_days = fields.Integer(
+        string='Delay (Days)',
+        compute='_compute_delay_days',
+        store=True,
+    )
     
     # -------------------------------------------------------------------------
     # PROGRESS FIELDS
@@ -311,6 +346,23 @@ class ProjectProject(models.Model):
                 )
             else:
                 project.execution_financial_progress = 0.0
+
+    @api.depends('execution_planned_end', 'execution_actual_end', 'execution_progress')
+    def _compute_delay_days(self):
+        """Compute current delay days."""
+        today = date.today()
+        for project in self:
+            if project.execution_progress >= 100:
+                if project.execution_actual_end and project.execution_planned_end:
+                    delay = (project.execution_actual_end - project.execution_planned_end).days
+                    project.execution_delay_days = max(0, delay)
+                else:
+                    project.execution_delay_days = 0
+            else:
+                if project.execution_planned_end and project.execution_planned_end < today:
+                    project.execution_delay_days = (today - project.execution_planned_end).days
+                else:
+                    project.execution_delay_days = 0
 
     # -------------------------------------------------------------------------
     # CONSTRAINT METHODS

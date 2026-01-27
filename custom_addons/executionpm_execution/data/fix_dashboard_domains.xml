@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Force update dashboard action domains.
+        This file ensures the domains are correctly applied even if 
+        previous versions were cached in the database.
+    -->
+
+    <!-- PMO Pending Validations - Only show submitted, under_review, correction_requested -->
+    <record id="action_pmo_pending_validations" model="ir.actions.act_window">
+        <field name="name">Pending Validations</field>
+        <field name="res_model">execution.progress</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ['submitted', 'under_review', 'correction_requested'])]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_execution_progress_search"/>
+    </record>
+
+    <!-- PMO Delayed Tasks - Only show tasks past deadline that are not completed -->
+    <record id="action_pmo_delayed_tasks" model="ir.actions.act_window">
+        <field name="name">Delayed Tasks</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d')),
+            ('progress_status', '!=', 'completed'),
+            ('actual_progress', '&lt;', 100)
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+    </record>
+
+    <!-- Contractor Active Tasks -->
+    <record id="action_contractor_active_tasks" model="ir.actions.act_window">
+        <field name="name">Active Work Packages</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('lot_id.planning_id.project_id.execution_contractor_id.related_user_id', '=', uid),
+            ('progress_status', '!=', 'completed'),
+            ('date_start', '&lt;=', (context_today()).strftime('%Y-%m-%d')),
+            ('date_end', '&gt;=', (context_today()).strftime('%Y-%m-%d'))
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+    </record>
+
+    <!-- Contractor Delayed Tasks -->
+    <record id="action_contractor_delayed_tasks" model="ir.actions.act_window">
+        <field name="name">Overdue Work Packages</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('lot_id.planning_id.project_id.execution_contractor_id.related_user_id', '=', uid),
+            ('progress_status', '!=', 'completed'),
+            ('actual_progress', '&lt;', 100),
+            ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d'))
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+    </record>
+
+    <!-- Contractor Rejected Declarations -->
+    <record id="action_contractor_rejected_declarations" model="ir.actions.act_window">
+        <field name="name">Rejected Reports (Need Correction)</field>
+        <field name="res_model">execution.progress</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('create_uid', '=', uid), 
+            ('state', 'in', ['rejected', 'correction_requested'])
+        ]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_execution_progress_search"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- PMO Actions -->
+    <record id="action_pmo_pending_validations" model="ir.actions.act_window">
+        <field name="name">Pending Validations</field>
+        <field name="res_model">execution.progress</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ['submitted', 'under_review', 'correction_requested'])]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_execution_progress_search"/>
+    </record>
+
+    <record id="action_pmo_delayed_tasks" model="ir.actions.act_window">
+        <field name="name">Delayed Tasks</field>
+        <field name="res_model">execution.planning.task</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[
+            ('date_end', '&lt;', (context_today()).strftime('%Y-%m-%d')),
+            ('progress_status', '!=', 'completed'),
+            ('actual_progress', '&lt;', 100)
+        ]</field>
+        <field name="context">{'search_default_delayed': 0}</field>
+        <field name="search_view_id" ref="executionpm_planning.view_execution_planning_task_search"/>
+    </record>
+
+    <!-- PMO Dashboard -->
+    <record id="board_pmo_dashboard_final" model="ir.ui.view">
+        <field name="name">board.pmo.dashboard.final</field>
+        <field name="model">board.board</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="PMO Monitoring Dashboard">
+                <board style="1-2">
+                    <column id="pmo_column_primary">
+                        <!-- Critical Alerts will be inserted here by executionpm_alerts -->
+                    </column>
+                    <column>
+                        <action name="%(action_pmo_pending_validations)d" string="Works Waiting Validation"/>
+                        <action name="%(action_pmo_delayed_tasks)d" string="Tasks Past Planning Deadline"/>
+                    </column>
+                </board>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dashboard_pmo_final" model="ir.actions.act_window">
+        <field name="name">PMO Desk</field>
+        <field name="res_model">board.board</field>
+        <field name="view_mode">form</field>
+        <field name="usage">menu</field>
+        <field name="view_id" ref="board_pmo_dashboard_final"/>
+    </record>
+
+    <menuitem id="menu_dashboard_pmo_hub"
+              name="PMO / Monitoring"
+              parent="executionpm_core.menu_executionpm_dashboard_root"
+              action="action_dashboard_pmo_final"
+              sequence="20"
+              groups="executionpm_core.group_executionpm_pmo"/>
+
+</odoo>
